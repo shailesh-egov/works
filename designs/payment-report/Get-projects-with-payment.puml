@@ -1,0 +1,31 @@
+@startuml
+title Payment Details by Project
+'https://plantuml.com/sequence-diagram
+'autonumber
+participant USER as USER order 1
+participant WMS as WMS order 2
+participant ES as ES order 3
+
+group List of Project with Payment details
+USER -> WMS: Request for Payment data
+activate USER
+activate WMS
+WMS -> WMS: Prepare ES Query based on payload
+WMS -> ES: Request for payment data
+activate ES
+WMS <-- ES: Payment data with project details
+deactivate ES
+WMS -> WMS: Get project Ids and prepare \nES Query to fetch estimates
+WMS -> ES: Request for estimate details and \ntotal estimated amount
+activate ES
+WMS <-- ES: Payment data with project details
+deactivate ES
+
+USER <-- WMS: Return payments data
+deactivate WMS
+deactivate USER
+end
+
+@enduml
+
+

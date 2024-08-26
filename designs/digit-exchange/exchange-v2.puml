@@ -1,0 +1,47 @@
+@startuml
+'actor  as User order 0
+participant HUDD_PROGRAM as HUDD_PROGRAM order 1 #dbfda7
+participant HUDD_DX as HUDD_DX order 2 #99FF99
+participant FINANCE_DX as FINANCE_DX order 3 #99FF99
+participant FINANCE_PROGRAM as FINANCE_PROGRAM order 4 #dbfda7
+participant KAFKA as KAFKA order 6 #33f0ff
+
+group Internal Server Call
+    HUDD_PROGRAM -> HUDD_DX:  /program
+    activate HUDD_DX #99FF99
+    HUDD_DX -> HUDD_DX: validate request
+    note right: Validate sender, receiver, action
+
+    HUDD_DX -> KAFKA: Push request to kafka
+    deactivate HUDD_DX
+end
+deactivate HUDD_PROGRAM
+HUDD_DX <[#636b58]- KAFKA: Listen HUDD_DX Program create topic
+activate HUDD_DX #e3fcbe
+HUDD_DX -> HUDD_DX: Process request based on \naction and receiver endpoint
+note right: 1. Get private key of the server \n2. Sign the request payload \n3. Add signed request in header
+
+group External Server Call
+HUDD_DX -> FINANCE_DX:  /program
+activate FINANCE_DX #a3ccbe
+FINANCE_DX -> FINANCE_DX: validate request
+note right: 1. Get the public key based on send id \n2. Validate signature & data
+alt if data request is not valid
+HUDD_DX <-[#red]- FINANCE_DX: Return invalid response
+end
+FINANCE_DX -> KAFKA: Push request to FINANCE DX Program topic
+HUDD_DX <-[#green]- FINANCE_DX:  Return ack
+deactivate HUDD_DX
+deactivate FINANCE_DX
+end
+FINANCE_DX <- KAFKA: Listen FINANCE DX Program topic
+activate FINANCE_DX #778899
+FINANCE_DX -> FINANCE_DX: Process request based on \naction and receiver endpoint
+note right: 1. Get the service based on request \n2. Select API based on \n Exchange Type & Action
+FINANCE_DX -> FINANCE_PROGRAM:  /program
+
+deactivate HUDD_DX
+deactivate FINANCE_DX
+
+
+@enduml

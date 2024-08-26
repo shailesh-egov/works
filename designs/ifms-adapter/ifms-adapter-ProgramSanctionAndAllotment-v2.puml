@@ -1,0 +1,85 @@
+@startuml
+title Overall flow of Sanction and Allocation with Program Service
+actor User as User order 0
+participant ProgramService as ProgramService order 1
+participant IFMSAdapter as IFMSAdapter order 2
+participant IFMSJit as IFMSJit order 3
+participant IDGen as IDGen order 3
+participant MDMS as MDMS order 3
+participant Kafka as Kafka order 4
+participant Persister as Persister order 5
+participant Indexer as Indexer order 6
+participant Scheduler as Scheduler order 8
+'
+'group Program Create flow
+'activate ProgramService #F0FF11
+'User -> ProgramService: Call /program/v1/_update api to update Program
+'ProgramService -> ProgramService: Validate program request
+'ProgramService -> IDGen: request for program code
+'ProgramService <-- IDGen: Return program code
+'ProgramService -> ProgramService: Enrich program details in payload
+'ProgramService -> Kafka: Push payload to kafka topic
+'User <-- ProgramService: Return Program details
+'Kafka <- Persister: Listen to ProgramService create topic \nand save request
+'deactivate ProgramService
+'end
+'
+'
+'group Program Update flow
+'User -> ProgramService: Call /program/v1/_create api to create Program
+'activate ProgramService #F0FF11
+'ProgramService -> ProgramService: Validate program request
+'ProgramService -> ProgramService: Enrich program details in payload
+'ProgramService -> Kafka: Push payload to kafka topic
+'User <-- ProgramService: Return Program details
+'Kafka <- Persister: Listen to ProgramService update topic \nand persist request
+'deactivate ProgramService
+'end
+
+
+group Sanction & Allocation Creation Flow
+Scheduler -> IFMSAdapter: Call allotment fetch API
+activate IFMSAdapter
+IFMSAdapter -> MDMS: fetch program, ssu, hoa and other details
+activate MDMS
+IFMSAdapter <-- MDMS: Return program, ssu, hoa and other details
+deactivate MDMS
+IFMSAdapter -> IFMSJit: Call login API
+activate IFMSJit
+IFMSAdapter <-- IFMSJit: Return auth token
+deactivate IFMSJit
+IFMSAdapter -> IFMSJit: Call VA API
+activate IFMSJit
+IFMSAdapter <-- IFMSJit: Return Allotment details
+IFMSAdapter -> IFMSAdapter: Process Allotment request
+deactivate IFMSJit
+alt If new sanction is generated
+ProgramService <- IFMSAdapter: Call on_sanction api
+activate ProgramService
+ProgramService -> ProgramService: Process on-sanction request
+ProgramService -> Kafka: Push sanctioned object to kafka
+ProgramService --> IFMSAdapter: Return success response
+deactivate ProgramService
+Kafka <- Persister: Listen to ProgramService create topic \nand save request
+end
+
+alt If new allotment is generated
+ProgramService <- IFMSAdapter: Call on_allocation api
+activate ProgramService
+ProgramService -> ProgramService: Process allocated request
+ProgramService -> ProgramService: Fetch sanction for those allotments
+ProgramService -> ProgramService: Update amounts in Sanction details
+ProgramService -> Kafka: Push updated sanctions to kafka
+ProgramService -> Kafka: Push new allotments to kafka
+ProgramService --> IFMSAdapter: Return success response
+deactivate ProgramService
+Kafka <- Persister: Listen to ProgramService create topic \nand save request
+end
+deactivate IFMSAdapter
+User -> ProgramService: Call /program/sanction/v1/_search \napi to fetch sanction details
+activate ProgramService
+ProgramService -> ProgramService: Validate request and \nfetch details from DB
+User <-- ProgramService: Return Sanction details
+deactivate ProgramService
+end
+@enduml

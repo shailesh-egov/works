@@ -1,0 +1,148 @@
+@startuml
+title Overall flow of Payment Instruction create using G2P api
+actor User as User order 0
+participant ExpenseService as ExpenseService order 1
+participant ProgramServiceClient as ProgramServiceClient order 2
+participant ProgramManageService as ProgramManageService order 3
+participant IFMSAdapter as IFMSAdapter order 4
+participant IFMSJit as IFMSJit order 5
+participant Kafka as Kafka order 6
+participant Persister as Persister order 7
+participant Indexer as Indexer order 7
+participant Scheduler as Scheduler order 8
+
+group Payment Create flow
+User -> ExpenseService: Calls _create/_update API \n with bill details
+activate User #119911
+activate ExpenseService #999911
+ExpenseService -> Kafka: Push created/update bill
+User <-- ExpenseService: Return success response
+deactivate ExpenseService #999911
+deactivate User #119911
+Kafka <- Persister: Listen to Payment/Bill/PI \ncreate/update topics and \npersist the data
+Kafka <- Indexer: Listen to Payment/Bill/PI \ncreate/update topics and \nindex the data
+
+Scheduler -> ProgramServiceClient: Call payment scheduler to create payment
+activate ProgramServiceClient #F0FF11
+ExpenseService <- ProgramServiceClient: Call bill/_search api to get approved bills \nfor which payment is not created
+activate ExpenseService #999911
+ExpenseService --> ProgramServiceClient: Return list of bills with success response
+deactivate ExpenseService #999911
+ProgramServiceClient -> ProgramServiceClient: Create payment payload if bill is approved
+ExpenseService <- ProgramServiceClient: Call payment create api
+activate ExpenseService #999911
+ExpenseService -> ExpenseService: Validate payment request and enrich payload
+ExpenseService -> Kafka: Push payment payload
+ExpenseService --> ProgramServiceClient: Return 201 success response
+deactivate ExpenseService #999911
+deactivate ProgramServiceClient #F0FF11
+end
+
+group disburse flow
+ProgramServiceClient <- Kafka: ProgramServiceClient consumer will listen payment create topic
+activate ProgramServiceClient #F0FF11
+User -> ProgramServiceClient: Call /pi/v1/_create api to create PI
+ProgramServiceClient -> ProgramServiceClient: Process payment request,\nencrich banck details \nand create Disburse payload
+
+activate ProgramManageService #F0AF11
+ProgramServiceClient -> ProgramManageService: call disburse api
+ProgramManageService -> ProgramManageService: Validate disburse request
+ProgramManageService -> Kafka: Push disburse request to kafka topic
+ProgramServiceClient <-- ProgramManageService: Return disburse response
+deactivate ProgramServiceClient #F0FF11
+deactivate ProgramManageService #F0AF11
+
+
+ProgramManageService <- Kafka: disburse-consumer: Listen to ProgramManageService disburse topic and process request
+activate ProgramManageService #F0AF11
+ProgramManageService -> ProgramManageService: Enrich program details in payload
+ProgramManageService -> Kafka: Push disburse request to kafka topic
+Kafka <- Persister: Listen to ProgramManageService disburse persist topic \nand persist request
+ProgramManageService -> IFMSAdapter: Call disburse api with disburse payload
+activate IFMSAdapter #607080
+IFMSAdapter -> IFMSAdapter: Validate disburse request
+IFMSAdapter -> Kafka: Push disburse payload
+ProgramManageService <-- IFMSAdapter: Return payment pushed response
+Kafka <- Persister: Listen to IFMSAdapter disburse persist topic \nand persist request
+deactivate IFMSAdapter #607080
+deactivate ProgramManageService #F0AF11
+end
+
+
+group on-disburse flow
+
+IFMSAdapter <- Kafka: Listen to disburse topic and \nstart processing request
+activate IFMSAdapter #607080
+activate IFMSJit #FFAF00
+IFMSAdapter -> IFMSJit: Call login api
+IFMSAdapter <-- IFMSJit: Return auth token
+IFMSAdapter -> IFMSAdapter: Create Payment Instruction payload
+IFMSAdapter -> IFMSJit: Send payment request
+IFMSAdapter <-- IFMSJit: Return success response
+deactivate IFMSJit #FFAF00
+IFMSAdapter -> IFMSAdapter: Update PI payload
+IFMSAdapter -> Kafka: Push PI payload to kafka for persist
+Kafka <- Persister: Listen to ProgramServiceClient pi-create topic \nand save PI request
+activate ProgramManageService #F0AF11
+ProgramManageService <- IFMSAdapter: call on-disburse api
+ProgramManageService -> Kafka: Push on-disburse request
+ProgramManageService --> IFMSAdapter: Return success response
+
+deactivate IFMSAdapter #607080
+ProgramManageService <- Kafka: on-disburse consumer picks the request
+ProgramManageService -> ProgramManageService: Process on-disburse request
+
+ProgramServiceClient <- ProgramManageService: Call on-disburse api
+activate ProgramServiceClient #F0FF11
+ProgramServiceClient -> Kafka: Push on-disburse request
+ProgramServiceClient --> ProgramManageService: Return success response
+ProgramServiceClient <- Kafka: on-disburse consumer pics the request
+ProgramServiceClient -> ProgramServiceClient: Process on-disburse request \nand update PI status
+ExpenseService <- ProgramServiceClient: Call payment update api
+activate ExpenseService #999911
+ExpenseService --> ProgramServiceClient: Return 201 success response
+deactivate ExpenseService #999911
+deactivate ProgramServiceClient #F0FF11
+deactivate ProgramManageService #F0AF11
+end
+
+
+group disburse/tx/on_status flow
+Scheduler -> IFMSAdapter: Execute cronjob scheduler \ne.g. PIS, PAG, PD, FD
+activate IFMSAdapter #607080
+IFMSAdapter -> IFMSJit: Fetch the PI status and call multiple api's
+activate IFMSJit #FFAF00
+IFMSAdapter <-- IFMSJit: Return PI status response
+deactivate IFMSJit #FFAF00
+ProgramManageService <- IFMSAdapter: Call disburse/tx/on_status api with PI status
+activate ProgramManageService #F0AF11
+ProgramManageService -> Kafka: Push disburse/tx/on_status request
+ProgramManageService --> IFMSAdapter: Return success response
+deactivate IFMSAdapter #607080
+ProgramManageService <- Kafka: consumer picks the disburse/tx/on_status request
+ProgramManageService -> ProgramManageService: Process disburse/tx/on_status request
+ProgramServiceClient <- ProgramManageService: Call disburse/tx/on_status api
+activate ProgramServiceClient #F0FF11
+ProgramServiceClient -> Kafka: Push disburse/tx/on_status request
+ProgramServiceClient --> ProgramManageService: Return success response
+deactivate ProgramServiceClient #F0FF11
+deactivate ProgramManageService #F0AF11
+
+ProgramServiceClient <- Kafka: disburse/tx/on_status consumer picks the request
+activate ProgramServiceClient #F0FF11
+ProgramServiceClient -> ProgramServiceClient: Process disburse/tx/on_status request
+ExpenseService <- ProgramServiceClient: Call payment update api
+activate ExpenseService #999911
+ExpenseService --> ProgramServiceClient: Return 201 success response
+deactivate ExpenseService #999911
+deactivate ProgramServiceClient #F0FF11
+
+User -> ProgramServiceClient: Request for payment status
+activate User #119911
+activate ProgramServiceClient #F0FF11
+User <-- ProgramServiceClient: Return payment status
+deactivate ProgramServiceClient #F0FF11
+deactivate User #119911
+end
+
+@enduml

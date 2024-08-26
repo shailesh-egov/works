@@ -1,0 +1,81 @@
+`@startuml
+'!theme materia
+title Payment Report using ASYNC approach
+'https://plantuml.com/sequence-diagram
+'autonumber
+participant USER as USER order 1
+participant BFF as BFF order 2
+participant WMS as WMS order 3
+participant IDGen as IDGen  order 3
+participant Filestore as Filestore order 3
+participant KAFKA as KAFKA order 4
+participant ES as ES order 5
+participant DB as DB order 6
+
+group Create a job to generate Report
+USER -> BFF: Request for payment report
+activate USER
+activate BFF
+BFF -> BFF: Process request enrich
+BFF -> IDGen: Get excel gen job id
+activate IDGen
+BFF <- IDGen: Return ID
+deactivate IDGen
+BFF -> KAFKA: push request to KAFKA
+USER <-- BFF: Return Job response \nwith initiated status
+deactivate BFF
+deactivate USER
+end
+
+group Process Excel generator
+KAFKA -> BFF: Listen to generate report topic
+activate BFF
+BFF -> BFF: Update the status to In-Process
+BFF -> KAFKA: Push request to update the status
+BFF -> WMS: Request for payment data
+activate WMS
+WMS -> WMS: Process request
+WMS -> ES: query to ES
+activate ES
+WMS <-- ES: ES Response
+deactivate ES
+WMS -> WMS: Process response
+BFF <-- WMS: Return payment response by project
+alt if There are more records then query again
+    BFF -> WMS: Request again with end record
+    BFF <-- WMS: Project's response
+end
+deactivate WMS
+BFF -> BFF: Process response and generate EXCEL
+BFF -> Filestore: Upload the file
+activate Filestore
+BFF <-- Filestore: Return the filestore id
+deactivate Filestore
+BFF -> BFF: Enrich filestore id to request &\n change the status to success
+BFF -> KAFKA: Send the updated request for persister
+deactivate BFF
+end
+
+group Get Requested report list by user and download file accordingly
+USER -> BFF: Query to get list of requested reports
+activate USER
+activate BFF
+BFF -> DB: Query for created request
+activate DB
+BFF <-- DB: Return list of records
+deactivate DB
+USER <-- BFF: Return list of jobs created by that user
+deactivate BFF
+group Download excel report from list of jobs
+USER -> Filestore: Request for excel file from filestore id
+activate Filestore
+USER <-- Filestore: Return
+deactivate Filestore
+end
+deactivate USER
+end
+
+@enduml
+
+
+`

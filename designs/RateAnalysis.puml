@@ -1,0 +1,41 @@
+@startuml Rate Analysis
+group Calculate Rate Analysis
+Client -> RateAnalysisService: /rate-analysis/v1/_calculate
+activate Client
+activate RateAnalysisService
+RateAnalysisService -> MdmsV2: Request for SOR Details and SOR Composition
+activate MdmsV2
+MdmsV2 -> RateAnalysisService: SOR Details fetched \n && SOR Composition fetched
+deactivate MdmsV2
+RateAnalysisService -> RateAnalysisService: Validate SOR ID passed is present or not.
+alt if Invalid MDMS data
+    RateAnalysisService --> Client : Validation Failed \n(400 with appropriate message)
+end
+RateAnalysisService -> RateAnalysisService :  Validate SOR Compositions are present or not
+alt NO SOR COMPOSITION PRESENT
+    RateAnalysisService --> Client : 400 Bad Request with proper\n error message stating no SOR compostion found
+end
+RateAnalysisService -> RateAnalysisService: Logic to calculate rate based on the analysis quantity \n as well per unit quantity
+RateAnalysisService -> Client: RateAnalysisResponse containing data\n based on the analysis quantity.
+deactivate RateAnalysisService
+deactivate Client
+end
+
+group Calculate and Save Rates
+Client -> RateAnalysisService: /rate-analysis/v1/_create
+RateAnalysisService -> MdmsV2: Validate SOR ID passed is present or not.
+alt Invalid MDMS data
+    RateAnalysisService -> Client : Validation Failed \n(400 with appropriate message)
+end
+'RateAnalysisService -> MdmsV2: Fetch Rates present in the system\n for SOR ID passed
+RateAnalysisService -> RateAnalysisService: call calculate rate and process response
+alt check = validFromDateOfExistingRates!=null &&\n newEffectiveFromDate > validFromDateOfExistingRates && newRates!= oldRates
+    RateAnalysisService -> MdmsV2 : Call /mdms-v2/v2/_create/WORKS-SOR.Rates\n to create rate of per unit quantity for Sor Id\n passed in request
+    RateAnalysisService -> MdmsV2 : Update validTo date of existing rates with the newEffectiveFromDate
+else
+    RateAnalysisService -> MdmsV2 : Call /mdms-v2/v2/_create/WORKS-SOR.Rates\n to create rate of per unit quantity for Sor Id\n passed in request
+end
+RateAnalysisService -> Client: Send calculated rate response
+
+end
+@enduml

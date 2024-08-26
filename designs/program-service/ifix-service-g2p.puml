@@ -1,0 +1,65 @@
+@startuml
+'actor  as User order 0
+participant MUKTA_SOFT as MUKTA_SOFT order 1 #a7fdc6
+participant HUDD_PROGRAM as HUDD_PROGRAM order 1 #dbfda7
+participant HUDD_DX as HUDD_DX order 2 #99FF99
+participant FINANCE_DX as FINANCE_DX order 3 #99FF99
+participant FINANCE_PROGRAM as FINANCE_PROGRAM order 4 #dbfda7
+participant IFMS_ADAPTER as IFMS_ADAPTER order 5 #a7fdc6
+participant IFMS as IFMS order 6 #33f0ff
+
+HUDD_PROGRAM -[#red]> HUDD_DX:  /program
+HUDD_DX -[#red]> FINANCE_DX:  /program
+FINANCE_DX -[#red]> FINANCE_PROGRAM:  /program
+FINANCE_PROGRAM -[#0000FF]> FINANCE_DX:  /on-program
+FINANCE_DX -[#0000FF]> HUDD_DX :  /on-program
+HUDD_PROGRAM <[#0000FF]- HUDD_DX :  /on-program
+'
+'
+'HUDD_PROGRAM -> HUDD_DX:  /update
+'HUDD_DX -> FINANCE_DX:  /update
+'FINANCE_DX -> FINANCE_PROGRAM:  /update
+'FINANCE_PROGRAM -> FINANCE_DX:  /on-update
+'FINANCE_DX -> HUDD_DX :  /on-update
+'HUDD_PROGRAM <- HUDD_DX :  /on-update
+
+IFMS_ADAPTER -[#red]> IFMS:  get-sanction-allocation
+IFMS_ADAPTER  <-[#0000FF]- IFMS: return sanction-allotment
+IFMS_ADAPTER -[#0000FF]> IFMS_ADAPTER: process_sanction
+IFMS_ADAPTER -[#0000FF]> FINANCE_PROGRAM: /on-sanction
+FINANCE_PROGRAM -[#0000FF]> FINANCE_DX: /on-sanction
+FINANCE_DX -[#0000FF]> HUDD_DX : /on-sanction
+HUDD_PROGRAM <[#0000FF]- HUDD_DX : /on-sanction
+
+IFMS_ADAPTER -[#0000FF]> IFMS_ADAPTER: process_allocation
+IFMS_ADAPTER -[#0000FF]> FINANCE_PROGRAM: /on-allocation
+FINANCE_PROGRAM -[#0000FF]> FINANCE_DX: /on-allocation
+FINANCE_DX -[#0000FF]> HUDD_DX : /on-allocation
+HUDD_PROGRAM <[#0000FF]- HUDD_DX : /on-allocation
+
+MUKTA_SOFT -[#red]> HUDD_PROGRAM:/disburse
+HUDD_PROGRAM -[#red]> HUDD_DX:/disburse
+HUDD_DX -[#red]> FINANCE_DX:/disburse
+FINANCE_DX -[#red]> FINANCE_PROGRAM:/disburse
+FINANCE_PROGRAM -[#red]> IFMS_ADAPTER:/disburse
+IFMS_ADAPTER -[#red]> IFMS:/payment-create
+
+IFMS_ADAPTER -[#0000FF]> FINANCE_PROGRAM: /on-disburse
+FINANCE_PROGRAM -[#0000FF]> FINANCE_DX: /on-disburse
+FINANCE_DX -[#0000FF]> HUDD_DX : /on-disburse
+HUDD_PROGRAM <[#0000FF]- HUDD_DX : /on-disburse
+MUKTA_SOFT <[#0000FF]- HUDD_PROGRAM : /payment/update
+
+
+
+
+
+'group Program creation and registration
+'    User -> ProgramService:  /_create \napi to create Program
+'    User <-- ProgramService: return success response \nwith program details
+'    ProgramService -> WorksIFIX:  /_create
+'    WorksIFIX -> IFMSIFIX:  /_create
+'    IFMSIFIX -> IFMSAdapter:  /_create
+'    User -> IFMSAdapter: Store program details in master data with domain details of works ifix
+'end
+@enduml

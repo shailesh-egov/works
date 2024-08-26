@@ -1,0 +1,97 @@
+@startuml
+title IFMS ADAPTER - Create Payment Instruction using Disburse create API
+actor User as User order 0
+participant ProgramService as ProgramService order 1
+participant IFMSAdapter as IFMSAdapter order 2
+participant IFMSJit as IFMSJit order 3
+participant IDGen as IDGen order 3
+participant MDMS as MDMS order 3
+participant EncService as EncService order 3
+participant Kafka as Kafka order 4
+participant DB as DB order 5
+participant ES as ES order 6
+
+ProgramService -> IFMSAdapter: Call disburse/create API
+activate IFMSAdapter
+IFMSAdapter -> IFMSAdapter: validate disburse request, required fields are present
+IFMSAdapter -> IFMSAdapter: fetch PI using target_id
+alt If PI already exists and payment status is INITIATED, APPROVED, IN PROCESS, SUCCESSFUL
+ProgramService <-- IFMSAdapter: Return error response
+end
+IFMSAdapter -> MDMS: fetch ssu, hoa and other details
+activate MDMS
+IFMSAdapter <-- MDMS: Return ssu, hoa and other details
+deactivate MDMS
+IFMSAdapter -> IFMSAdapter: Validate program_code
+alt Original PI creation [If PI is not created or Created PI status is failed]
+    IFMSAdapter -> IFMSAdapter: get funds by sanction_id and \nvalidate funds are available
+    group Construct PI request
+    IFMSAdapter -> IFMSAdapter: Construct PI request \nfrom Disburse request
+    IFMSAdapter -> EncService: call decrypt API to decrypt beneficiary details \n e.g. bankaccount, ifsc, name, phone number, address
+    activate EncService
+    IFMSAdapter <- EncService: Return decrypted response
+    deactivate EncService
+    IFMSAdapter -> IDGen: request for unique PI number
+    activate IDGen
+    IFMSAdapter <-- IDGen: return PI number
+    deactivate IDGen
+    IFMSAdapter -> IDGen: request for unique beneficiary ids
+    activate IDGen
+    IFMSAdapter <-- IDGen: return beneficiary ids
+    deactivate IDGen
+    IFMSAdapter -> IFMSAdapter: enrich IDgen pi and beneficiary ids in PI request
+    end
+    group Authenticate and post PI request
+    IFMSAdapter -> IFMSJit: Call login API
+    activate IFMSJit
+    IFMSAdapter <-- IFMSJit: Return auth token
+    deactivate IFMSJit
+    IFMSAdapter -> IFMSJit: Call PI API
+    activate IFMSJit
+    IFMSAdapter <-- IFMSJit: Return PI response
+    deactivate IFMSJit
+    end
+    alt IF PI posted successfully
+    IFMSAdapter -> IFMSAdapter: Subtract amount that is paid from funds summary
+    IFMSAdapter -> DB: update funds summary
+    IFMSAdapter -> IFMSAdapter: create transaction details
+    end
+    IFMSAdapter -> DB: Save PI and beneficiary details in DB
+    IFMSAdapter -> ES: Save PI and beneficiary details in ES
+    deactivate IFMSAdapter
+
+else Revised PI creation [If PI status is Partial]
+    IFMSAdapter -> IFMSAdapter: Get all created PI for that target_id
+    activate IFMSAdapter
+    group Construct COR request
+        IFMSAdapter -> IFMSAdapter: Construct COR request from Disburse request \nand previous created PI
+        IFMSAdapter -> EncService: call decrypt API to decrypt beneficiary details \n e.g. bankaccount, ifsc
+        activate EncService
+        IFMSAdapter <- EncService: Return decrypted response
+        deactivate EncService
+        IFMSAdapter -> IDGen: request for unique PI number
+        activate IDGen
+        IFMSAdapter <-- IDGen: return PI number
+        deactivate IDGen
+        IFMSAdapter -> IFMSAdapter: enrich IDgen COR request
+    end
+    group Authenticate and post PI request
+        IFMSAdapter -> IFMSJit: Call login API
+        activate IFMSJit
+        IFMSAdapter <-- IFMSJit: Return auth token
+        deactivate IFMSJit
+        IFMSAdapter -> IFMSJit: Call PI API
+        activate IFMSJit
+        IFMSAdapter <-- IFMSJit: Return PI response
+        deactivate IFMSJit
+    end
+    IFMSAdapter -> DB: Save PI and beneficiary details in DB
+    IFMSAdapter -> ES: Save PI and beneficiary details in ES
+    alt IF COR posted successfully
+        IFMSAdapter -> IFMSAdapter: Change status of Partial PI to COMPLETED
+        IFMSAdapter -> DB: update last Partial PI to COMPLETED status
+    end
+    deactivate IFMSAdapter
+end
+ProgramService <-- IFMSAdapter: Return success response
+@enduml

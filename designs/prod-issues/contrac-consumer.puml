@@ -1,0 +1,27 @@
+@startuml
+title Auto contract generation flow
+'https://plantuml.com/sequence-diagram
+autonumber
+participant USER as USER order 1
+participant ESTIMATE_SERVICE as ESTIMATE_SERVICE order 1
+participant CONTRACT_SERVICE as CONTRACT_SERVICE order 2
+participant REDIS as REDIS order 3
+participant KAFKA as KAFKA order 4
+
+USER -> ESTIMATE_SERVICE: Request to create \nrevised estimate
+ESTIMATE_SERVICE -> ESTIMATE_SERVICE: Generate revised estimate
+ESTIMATE_SERVICE -> REDIS: Save updated estimate details in redis by ID
+ESTIMATE_SERVICE -> KAFKA: Push request to kafka
+ESTIMATE_SERVICE --> USER: Revised estimate created
+
+CONTRACT_SERVICE <-- KAFKA: Listening to the estimate update topic
+
+group If Estimate is approved
+    CONTRACT_SERVICE -> CONTRACT_SERVICE: Generate revised Contract Request \n and start processing of contract create
+    CONTRACT_SERVICE -> ESTIMATE_SERVICE: Request for Estimate Details
+    ESTIMATE_SERVICE --> CONTRACT_SERVICE: Return Estimate Details
+    CONTRACT_SERVICE -> CONTRACT_SERVICE: Create Contract revision request
+    CONTRACT_SERVICE -> KAFKA: Push request to kafka
+end
+
+@enduml

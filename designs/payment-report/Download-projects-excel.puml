@@ -1,0 +1,36 @@
+@startuml
+title Payment Report generation on-fly
+'https://plantuml.com/sequence-diagram
+'autonumber
+participant USER as USER order 1
+participant BFF as BFF order 2
+participant WMS as WMS order 3
+participant ES as ES order 4
+
+group Download projects excel report
+USER -> BFF: Request for payment report
+activate USER
+activate BFF
+BFF -> WMS: Request for payment data
+activate WMS
+WMS -> WMS: Process request
+WMS -> ES: query to ES
+activate ES
+WMS <-- ES: ES Response
+deactivate ES
+WMS -> WMS: Process response
+BFF <-- WMS: Return payment response by project
+alt if There are more records then query again
+    BFF -> WMS: Request again with end record
+    BFF <-- WMS: Project's response
+end
+deactivate WMS
+BFF -> BFF: Process response and generate EXCEL
+USER <-- BFF: Return excel file
+deactivate BFF
+deactivate USER
+end
+
+@enduml
+
+

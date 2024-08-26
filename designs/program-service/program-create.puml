@@ -1,0 +1,85 @@
+@startuml
+'title Digit exchange flow with program service for all the apis
+actor User as User order 0 #00fda7
+'participant MUKTA_ADAPTER as MUKTA_ADAPTER order 1
+participant HUDD_PROGRAM as HUDD_PROGRAM order 1 #dbfda7
+participant HUDD_DX as HUDD_DX order 2 #99FF99
+participant FINANCE_DX as FINANCE_DX order 3 #99FF99
+participant FINANCE_PROGRAM as FINANCE_PROGRAM order 4 #dbfda7
+participant IDGEN as IDGEN order 5 #fe8e67
+participant KAFKA as KAFKA order 6 #c5c4c4
+database DB as DB order 7 #faece6
+
+activate User #ffdd11
+User -> HUDD_PROGRAM:  /program/_create
+activate HUDD_PROGRAM #00FFF0
+HUDD_PROGRAM -> HUDD_PROGRAM: validate request
+note right: Validate input details \nlike program details, headers, \nparent program
+alt if request is not valid
+User <-[#red]- HUDD_PROGRAM: Invalid Request
+end
+HUDD_PROGRAM -> KAFKA: Push request to kafka
+User <-- HUDD_PROGRAM:  Return success response
+deactivate HUDD_PROGRAM
+deactivate User
+HUDD_PROGRAM <- KAFKA: Listen program topic
+activate HUDD_PROGRAM #11DD11
+HUDD_PROGRAM -> HUDD_PROGRAM: Enrich program request based on \naction and receiver endpoint
+note right: Enrich Audit details, UUID
+HUDD_PROGRAM -[#green]> DB: Save Program details to DB
+HUDD_PROGRAM -> HUDD_PROGRAM: Create request for DX
+HUDD_PROGRAM -> HUDD_DX:  /program
+activate HUDD_DX #CCFFa9
+HUDD_PROGRAM <-- HUDD_DX:  Return success response
+deactivate HUDD_PROGRAM
+HUDD_DX -> FINANCE_DX:  /program
+activate FINANCE_DX #11FFa9
+HUDD_DX <-- FINANCE_DX:  Return success response
+deactivate HUDD_DX
+FINANCE_DX -> FINANCE_PROGRAM:  /program
+activate FINANCE_PROGRAM #DDFFAA
+FINANCE_PROGRAM -> FINANCE_PROGRAM: validate request
+note right: Validate input details \nlike program details, headers, \nparent program
+FINANCE_PROGRAM -> KAFKA: Push request to kafka
+FINANCE_DX <-- FINANCE_PROGRAM :  Return success response
+deactivate FINANCE_PROGRAM
+deactivate HUDD_DX
+deactivate FINANCE_DX
+
+FINANCE_PROGRAM <- KAFKA: Listen program topic
+activate FINANCE_PROGRAM #6677F8
+FINANCE_PROGRAM -> FINANCE_PROGRAM: Enrich Program details
+note right: Enrich Audit detials, Progrma Code
+alt if Receiver id is same as current system
+FINANCE_PROGRAM -> IDGEN: Generate Program Code
+activate IDGEN #AADDAA
+FINANCE_PROGRAM <-- IDGEN: Return Program Code
+deactivate IDGEN
+end
+FINANCE_PROGRAM -[#green]> DB: Save Program Details
+FINANCE_PROGRAM -> FINANCE_PROGRAM: Create reply request
+note right: Create on-program request based on \nrequest and receiver endpoint
+FINANCE_PROGRAM -> FINANCE_DX:  /on-program
+activate FINANCE_DX #11FFa9
+FINANCE_PROGRAM <-- FINANCE_DX:  Return success response
+deactivate FINANCE_PROGRAM
+FINANCE_DX -> HUDD_DX:  /on-program
+activate HUDD_DX #CCFFa9
+HUDD_DX <- FINANCE_DX:  Return success response
+deactivate FINANCE_DX
+HUDD_DX -> HUDD_PROGRAM:  /on-program/_create
+activate HUDD_PROGRAM #11AA56
+HUDD_PROGRAM -> HUDD_PROGRAM: validate request
+HUDD_PROGRAM -> KAFKA: Push request to kafka
+HUDD_PROGRAM -> HUDD_DX:  Return success response
+deactivate HUDD_PROGRAM
+deactivate HUDD_DX
+
+HUDD_PROGRAM <- KAFKA: Listen program topic
+activate HUDD_PROGRAM #14F219
+HUDD_PROGRAM -> HUDD_PROGRAM: Update program details based on \naction and receiver endpoint
+note right: Program code will be enriched
+HUDD_PROGRAM -> DB: Update program details
+deactivate HUDD_DX
+
+@enduml

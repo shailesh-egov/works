@@ -1,0 +1,42 @@
+@startuml
+'actor  as User order 0
+participant MUKTA_ADAPTER as MUKTA_ADAPTER order 1
+participant HUDD_PROGRAM as HUDD_PROGRAM order 1
+participant HUDD_DX as HUDD_DX order 2
+participant FINANCE_DX as FINANCE_DX order 3
+participant FINANCE_PROGRAM as FINANCE_PROGRAM order 4
+participant IFMS_ADAPTER as IFMS_ADAPTER order 5
+participant KAFKA as KAFKA order 6
+
+HUDD_PROGRAM -> HUDD_DX:  /program
+activate HUDD_PROGRAM
+activate HUDD_DX
+HUDD_DX -> HUDD_DX: validate request
+HUDD_DX -> KAFKA: Push request to kafka
+HUDD_PROGRAM <-- HUDD_DX:  Return success response
+deactivate HUDD_DX
+deactivate HUDD_PROGRAM
+HUDD_DX <- KAFKA: Listen program topic
+activate HUDD_DX
+HUDD_DX -> HUDD_DX: Process request based on \naction and receiver endpoint
+HUDD_DX -> FINANCE_DX:  /program
+activate FINANCE_DX
+FINANCE_DX -> FINANCE_DX: validate request
+FINANCE_DX -> KAFKA: Push request to kafka
+HUDD_DX <-- FINANCE_DX:  Return success response
+deactivate HUDD_DX
+deactivate FINANCE_DX
+
+FINANCE_DX <- KAFKA: Listen program topic
+activate FINANCE_DX
+FINANCE_DX -> FINANCE_DX: Process request based on \naction and receiver endpoint
+FINANCE_DX -> FINANCE_PROGRAM:  /program
+activate FINANCE_PROGRAM
+FINANCE_PROGRAM -> FINANCE_PROGRAM: validate request
+FINANCE_PROGRAM -> KAFKA: Push request to kafka
+FINANCE_DX <-- FINANCE_PROGRAM :  Return success response
+deactivate HUDD_DX
+deactivate FINANCE_DX
+
+
+@enduml

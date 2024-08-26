@@ -1,0 +1,1147 @@
+openapi: 3.0.3
+info:
+  title: Exchange
+  description: >
+    Exchange service
+
+  version: 1.0.0
+  contact:
+    name: eGov Foundation
+    email: contact@egovernments.org
+  license:
+    name: MIT License
+    url: https://opensource.org/license/mit/
+externalDocs:
+  description: DIGIT Platform
+  url: https://core.digit.org
+
+paths:
+  /digit-exchange/v1/EXCHANGE_TYPE:
+    post:
+      summary: /digit-exchange/v1/{EXCHANGE_TYPE}
+      description: Enables exchange of program, on-program, sanction, on-sanction etc
+      requestBody:
+        description: ''
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                signature:
+                  $ref: '#/components/schemas/MsgSignature'
+                header:
+                  allOf:
+                    - $ref: '#/components/schemas/MsgHeader'
+                    - properties:
+                        action:
+                          enum:
+                            - create
+                            - update
+
+                message:
+                  type: string
+              required:
+                - header
+                - message
+      responses:
+        '401':
+          $ref: '#/components/responses/HttpErrorResponse'
+        '403':
+          $ref: '#/components/responses/HttpErrorResponse'
+        '500':
+          $ref: '#/components/responses/HttpErrorResponse'
+        default:
+          $ref: '#/components/responses/Response'
+      security:
+        - Authorization: []
+      deprecated: false
+
+  # /exchange/v1/ON-EXCHANGE_TYPE:
+  #   post:
+  #     summary: /exchange/v1/program
+  #     description: Enables exchange of program related messages
+  #     requestBody:
+  #       description: ''
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               signature:
+  #                 $ref: '#/components/schemas/MsgSignature'
+  #               header:
+  #                 allOf:
+  #                   - $ref: '#/components/schemas/MsgCallbackHeader'
+  #                   - properties:
+  #                       action:
+  #                         enum:
+  #                           - create
+  #                           - update
+  #               message:
+  #                 type: string
+  #             required:
+  #               - header
+  #               - message
+  #     responses:
+  #       '401':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '403':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '500':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       default:
+  #         $ref: '#/components/responses/Response'
+  #     security:
+  #       - Authorization: []
+  #     deprecated: false
+
+
+  # /exchange/v1/program:
+  #   post:
+  #     summary: /exchange/v1/program
+  #     description: Enables exchange of program related messages
+  #     requestBody:
+  #       description: ''
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               signature:
+  #                 $ref: '#/components/schemas/MsgSignature'
+  #               header:
+  #                 allOf:
+  #                   - $ref: '#/components/schemas/MsgHeader'
+  #                   - properties:
+  #                       action:
+  #                         enum:
+  #                           - create
+  #                           - update
+
+  #               message:
+  #                 type: string
+  #             required:
+  #               - header
+  #               - message
+  #     responses:
+  #       '401':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '403':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '500':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       default:
+  #         $ref: '#/components/responses/Response'
+  #     security:
+  #       - Authorization: []
+  #     deprecated: false
+
+  # /exchange/v1/on-program:
+  #   post:
+  #     summary: /exchange/v1/program
+  #     description: Enables exchange of program related messages
+  #     requestBody:
+  #       description: ''
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               signature:
+  #                 $ref: '#/components/schemas/MsgSignature'
+  #               header:
+  #                 allOf:
+  #                   - $ref: '#/components/schemas/MsgCallbackHeader'
+  #                   - properties:
+  #                       action:
+  #                         enum:
+  #                           - create
+  #                           - update
+  #               message:
+  #                 type: string
+  #             required:
+  #               - header
+  #               - message
+  #     responses:
+  #       '401':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '403':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '500':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       default:
+  #         $ref: '#/components/responses/Response'
+  #     security:
+  #       - Authorization: []
+  #     deprecated: false
+
+  # /exchange/v1/sanction:
+  #   post:
+  #     summary: /exchange/v1/sanction
+  #     description: Enables exchange of program related messages
+  #     requestBody:
+  #       description: ''
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               signature:
+  #                 $ref: '#/components/schemas/MsgSignature'
+  #               header:
+  #                 allOf:
+  #                   - $ref: '#/components/schemas/MsgHeader'
+  #                   - properties:
+  #                       action:
+  #                         enum:
+  #                           - create
+  #                           - update
+
+  #               message:
+  #                 type: string
+  #             required:
+  #               - header
+  #               - message
+  #     responses:
+  #       '401':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '403':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '500':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       default:
+  #         $ref: '#/components/responses/Response'
+  #     security:
+  #       - Authorization: []
+  #     deprecated: false
+
+  # /exchange/v1/on-sanction:
+  #   post:
+  #     summary: /exchange/v1/on-sanction
+  #     description: Enables exchange of program related messages
+  #     requestBody:
+  #       description: ''
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               signature:
+  #                 $ref: '#/components/schemas/MsgSignature'
+  #               header:
+  #                 allOf:
+  #                   - $ref: '#/components/schemas/MsgCallbackHeader'
+  #                   - properties:
+  #                       action:
+  #                         enum:
+  #                           - create
+  #                           - update
+  #               message:
+  #                 type: string
+  #             required:
+  #               - header
+  #               - message
+  #     responses:
+  #       '401':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '403':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '500':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       default:
+  #         $ref: '#/components/responses/Response'
+  #     security:
+  #       - Authorization: []
+  #     deprecated: false
+
+  # /exchange/v1/allocation:
+  #   post:
+  #     summary: /exchange/v1/allocation
+  #     description: Enables exchange of allocation related messages
+  #     requestBody:
+  #       description: ''
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               signature:
+  #                 $ref: '#/components/schemas/MsgSignature'
+  #               header:
+  #                 allOf:
+  #                   - $ref: '#/components/schemas/MsgHeader'
+  #                   - properties:
+  #                       action:
+  #                         enum:
+  #                           - create
+  #                           - update
+
+  #               message:
+  #                 type: string
+  #             required:
+  #               - header
+  #               - message
+  #     responses:
+  #       '401':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '403':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '500':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       default:
+  #         $ref: '#/components/responses/Response'
+  #     security:
+  #       - Authorization: []
+  #     deprecated: false
+
+  # /exchange/v1/on-allocation:
+  #   post:
+  #     summary: /exchange/v1/on-allocation
+  #     description: Enables exchange of allocation related messages
+  #     requestBody:
+  #       description: ''
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               signature:
+  #                 $ref: '#/components/schemas/MsgSignature'
+  #               header:
+  #                 allOf:
+  #                   - $ref: '#/components/schemas/MsgCallbackHeader'
+  #                   - properties:
+  #                       action:
+  #                         enum:
+  #                           - create
+  #                           - update
+  #               message:
+  #                 type: string
+  #             required:
+  #               - header
+  #               - message
+  #     responses:
+  #       '401':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '403':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '500':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       default:
+  #         $ref: '#/components/responses/Response'
+  #     security:
+  #       - Authorization: []
+  #     deprecated: false
+
+  # /exchange/v1/disbuse:
+  #   post:
+  #     summary: /exchange/v1/disbuse
+  #     description: Enables exchange of disbuse related messages
+  #     requestBody:
+  #       description: ''
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               signature:
+  #                 $ref: '#/components/schemas/MsgSignature'
+  #               header:
+  #                 allOf:
+  #                   - $ref: '#/components/schemas/MsgHeader'
+  #                   - properties:
+  #                       action:
+  #                         enum:
+  #                           - create
+  #                           - update
+
+  #               message:
+  #                 type: string
+  #             required:
+  #               - header
+  #               - message
+  #     responses:
+  #       '401':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '403':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '500':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       default:
+  #         $ref: '#/components/responses/Response'
+  #     security:
+  #       - Authorization: []
+  #     deprecated: false
+
+  # /exchange/v1/on-disbuse:
+  #   post:
+  #     summary: /exchange/v1/on-disbuse
+  #     description: Enables exchange of disbuse related messages
+  #     requestBody:
+  #       description: ''
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               signature:
+  #                 $ref: '#/components/schemas/MsgSignature'
+  #               header:
+  #                 allOf:
+  #                   - $ref: '#/components/schemas/MsgCallbackHeader'
+  #                   - properties:
+  #                       action:
+  #                         enum:
+  #                           - create
+  #                           - update
+  #               message:
+  #                 type: string
+  #             required:
+  #               - header
+  #               - message
+  #     responses:
+  #       '401':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '403':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '500':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       default:
+  #         $ref: '#/components/responses/Response'
+  #     security:
+  #       - Authorization: []
+  #     deprecated: false
+
+  # /exchange/v1/demand:
+  #   post:
+  #     summary: /exchange/v1/demand
+  #     description: Enables exchange of demand related messages
+  #     requestBody:
+  #       description: ''
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               signature:
+  #                 $ref: '#/components/schemas/MsgSignature'
+  #               header:
+  #                 allOf:
+  #                   - $ref: '#/components/schemas/MsgHeader'
+  #                   - properties:
+  #                       action:
+  #                         enum:
+  #                           - create
+  #                           - update
+
+  #               message:
+  #                 type: string
+  #             required:
+  #               - header
+  #               - message
+  #     responses:
+  #       '401':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '403':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '500':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       default:
+  #         $ref: '#/components/responses/Response'
+  #     security:
+  #       - Authorization: []
+  #     deprecated: false
+
+  # /exchange/v1/on-demand:
+  #   post:
+  #     summary: /exchange/v1/on-demand
+  #     description: Enables exchange of demand related messages
+  #     requestBody:
+  #       description: ''
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               signature:
+  #                 $ref: '#/components/schemas/MsgSignature'
+  #               header:
+  #                 allOf:
+  #                   - $ref: '#/components/schemas/MsgCallbackHeader'
+  #                   - properties:
+  #                       action:
+  #                         enum:
+  #                           - create
+  #                           - update
+  #               message:
+  #                 type: string
+  #             required:
+  #               - header
+  #               - message
+  #     responses:
+  #       '401':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '403':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '500':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       default:
+  #         $ref: '#/components/responses/Response'
+  #     security:
+  #       - Authorization: []
+  #     deprecated: false
+
+  # /exchange/v1/receipt:
+  #   post:
+  #     summary: /exchange/v1/receipt
+  #     description: Enables exchange of receipt related messages
+  #     requestBody:
+  #       description: ''
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               signature:
+  #                 $ref: '#/components/schemas/MsgSignature'
+  #               header:
+  #                 allOf:
+  #                   - $ref: '#/components/schemas/MsgHeader'
+  #                   - properties:
+  #                       action:
+  #                         enum:
+  #                           - create
+  #                           - update
+
+  #               message:
+  #                 type: string
+  #             required:
+  #               - header
+  #               - message
+  #     responses:
+  #       '401':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '403':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '500':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       default:
+  #         $ref: '#/components/responses/Response'
+  #     security:
+  #       - Authorization: []
+  #     deprecated: false
+
+  # /exchange/v1/on-receipt:
+  #   post:
+  #     summary: /exchange/v1/on-receipt
+  #     description: Enables exchange of receipt related messages
+  #     requestBody:
+  #       description: ''
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               signature:
+  #                 $ref: '#/components/schemas/MsgSignature'
+  #               header:
+  #                 allOf:
+  #                   - $ref: '#/components/schemas/MsgCallbackHeader'
+  #                   - properties:
+  #                       action:
+  #                         enum:
+  #                           - create
+  #                           - update
+  #               message:
+  #                 type: string
+  #             required:
+  #               - header
+  #               - message
+  #     responses:
+  #       '401':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '403':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '500':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       default:
+  #         $ref: '#/components/responses/Response'
+  #     security:
+  #       - Authorization: []
+  #     deprecated: false
+
+  # /exchange/v1/bill:
+  #   post:
+  #     summary: /exchange/v1/bill
+  #     description: Enables exchange of bill related messages
+  #     requestBody:
+  #       description: ''
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               signature:
+  #                 $ref: '#/components/schemas/MsgSignature'
+  #               header:
+  #                 allOf:
+  #                   - $ref: '#/components/schemas/MsgHeader'
+  #                   - properties:
+  #                       action:
+  #                         enum:
+  #                           - create
+  #                           - update
+
+  #               message:
+  #                 type: string
+  #             required:
+  #               - header
+  #               - message
+  #     responses:
+  #       '401':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '403':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '500':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       default:
+  #         $ref: '#/components/responses/Response'
+  #     security:
+  #       - Authorization: []
+  #     deprecated: false
+
+  # /exchange/v1/on-bill:
+  #   post:
+  #     summary: /exchange/v1/on-bill
+  #     description: Enables exchange of bill related messages
+  #     requestBody:
+  #       description: ''
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: object
+  #             properties:
+  #               signature:
+  #                 $ref: '#/components/schemas/MsgSignature'
+  #               header:
+  #                 allOf:
+  #                   - $ref: '#/components/schemas/MsgCallbackHeader'
+  #                   - properties:
+  #                       action:
+  #                         enum:
+  #                           - create
+  #                           - update
+  #               message:
+  #                 type: string
+  #             required:
+  #               - header
+  #               - message
+  #     responses:
+  #       '401':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '403':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       '500':
+  #         $ref: '#/components/responses/HttpErrorResponse'
+  #       default:
+  #         $ref: '#/components/responses/Response'
+  #     security:
+  #       - Authorization: []
+  #     deprecated: false
+
+components:
+  schemas:
+    cdpi_FinancialAddress:
+      type: string
+      description: |
+        1. Financial address is case insensitive normative represenation of a store of value account represented as id-type:id@provider
+        2. Every payer/payee financial address must resolve to an actual store of value account number for processing the payment instruction
+        3. It is recommended the mapping between id and store of value account details to be held only at final store of value entity and intermediaries can hold 
+        3. Few examples: <br>
+            - token@id-provider e.g token:12345@national-id <br>
+            - uid@pymt-rail e.g uid:12345@national-id <br>
+            - vid@id-provider e.g vid:12345@national-id <br>
+            - mobile@mobile-provider e.g mobile:12345@mobile-pymt <br>
+            - account-id@bank-psp-code e.g account:12345@national-bank <br>
+            - account-no@ifsc-code.ifsc.pymt-rail e.g account:12345@abcd0000001.ifsc.pymt-rail <br>
+            - user-id@psp-code e.g. joeuser@national-bank <br>
+            - token@psp-code e.g token:123456@a123 <br>
+            - code@purpose-code.voucher-provider e.g voucher:12345@food.coupon-network <br>
+      format: '^[a-zA-Z0-9.-]+@[a-zA-Z0-9.-]+$'
+      example: 'token:12345@gtbank'
+    DisburseRequest:
+      type: object
+      description: Disbursement request
+      properties:
+        transaction_id:
+          $ref: '#/components/schemas/TransactionId'
+        disbursements:
+          type: array
+          items:
+            type: object
+            description: |
+              1. Describes payment schema that enable transfer from payer to payee accounts. 
+              2. This entity supports immediate and scheduling one time payment request into future. 
+              3. Recurring payments is not part of the scope of this entity.
+            properties:
+              reference_id:
+                $ref: '#/components/schemas/ReferenceId'
+              payer_fa:
+                $ref: '#/components/schemas/cdpi_FinancialAddress'
+              payee_fa:
+                $ref: '#/components/schemas/cdpi_FinancialAddress'
+              amount:
+                $ref: '#/components/schemas/Amount'
+              scheduled_timestamp:
+                allOf:
+                  - description: If not present then immediate disbursement else schedule as per scheduled date-time
+                  - $ref: '#/components/schemas/DateTime'
+              payer_name:
+                description: Payer account name for easy reference. Usually each scheme may have a seperate holding account.
+                type: string
+                example: Farmer draught relief scheme 2023
+              payee_name:
+                description: Payer name for easy reference. Usually beneficiary name as per scheme registration info
+                type: string
+                example: Joe John
+              note:
+                description: Note to payer/payee to reflect on statements
+                type: string
+                maxLength: 99
+              purpose:
+                $ref: '#/components/schemas/Purpose'
+              instruction:
+                description: 'Additional systems instruction for interfacing systems/platforms to integrate, reconcile'
+                type: string
+                maxLength: 999
+              currency_code:
+                $ref: '#/components/schemas/CurrencyCode'
+              locale:
+                $ref: '#/components/schemas/LanguageCode'
+            required:
+              - reference_id
+              - payer_fa
+              - payee_fa
+              - amount
+      required:
+        - transaction_id
+        - disburemsents
+    DisburseResponse:
+      type: object
+      description: Disburse response
+      properties:
+        transaction_id:
+          $ref: '#/components/schemas/TransactionId'
+        disbursements_status:
+          type: array
+          items:
+            type: object
+            description: |
+              1. G2P Disbursement response i.e status of each disburemsent request for reconciliation by sender system
+            properties:
+              reference_id:
+                $ref: '#/components/schemas/ReferenceId'
+              timestamp:
+                description: Disbursement response status datetime in RFC3339 format
+                type: string
+                format: date-time
+                example: '2022-12-04T17:20:07-04:00'
+              status:
+                $ref: '#/components/schemas/RequestStatus'
+              status_reason_code:
+                $ref: '#/components/schemas/DisburseStatusReasonCode'
+              status_reason_message:
+                description: Status reason code message. Helps actionanble messaging for systems/end users
+                type: string
+                maxLength: 999
+              instruction:
+                description: 'Additional systems instruction for interfacing systems/platforms to integrate, reconcile'
+                type: string
+                maxLength: 999
+              amount:
+                $ref: '#/components/schemas/Amount'
+              payer_fa:
+                $ref: '#/components/schemas/cdpi_FinancialAddress'
+              payer_name:
+                description: Payer account name for easy reference. Usually each scheme may have a seperate holding account.
+                type: string
+                example: Farmer draught relief scheme 2023
+              payee_fa:
+                $ref: '#/components/schemas/cdpi_FinancialAddress'
+              payee_name:
+                description: Payer name for easy reference. Usually beneficiary name as per scheme registration info
+                type: string
+                example: Joe John
+              currency_code:
+                $ref: '#/components/schemas/CurrencyCode'
+              locale:
+                $ref: '#/components/schemas/LanguageCode'
+            required:
+              - reference_id
+              - timestamp
+              - status
+      required:
+        - transaction_id
+        - disbursements_status
+    DisburseStatusReasonCode:
+      type: string
+      description: Disbursement status reason codes
+      enum:
+        - rjct.reference_id.invalid
+        - rjct.reference_id.duplicate
+        - rjct.timestamp.invalid
+        - rjct.payer_fa.invalid
+        - rjct.payee_fa.invalid
+        - rjct.amount.invalid
+        - rjct.schedule_ts.invalid
+        - rjct.currency_code.invalid
+    SearchRequest:
+      type: object
+      description: Search disbursement requests
+      properties:
+        transaction_id:
+          $ref: '#/components/schemas/TransactionId'
+        search_criteria:
+          type: array
+          items:
+            type: object
+            description: |
+              1. Request to search disbursement using payer or payee fa
+            properties:
+              reference_id:
+                $ref: '#/components/schemas/ReferenceId'
+              timestamp:
+                $ref: '#/components/schemas/DateTime'
+              request_type:
+                type: string
+                enum:
+                  - disburse
+              attribute_type:
+                type: string
+                enum:
+                  - payer_fa
+                  - payee_fa
+              attribute_value:
+                oneOf:
+                  - $ref: '#/components/schemas/cdpi_FinancialAddress'
+              locale:
+                $ref: '#/components/schemas/LanguageCode'
+            required:
+              - reference_id
+              - request_type
+              - attribute_type
+              - attribute_value
+      required:
+        - transaction_id
+        - search_criteria
+    TxnStatusResponse:
+      type: object
+      description: txn status info on various service requests
+      properties:
+        transaction_id:
+          $ref: '#/components/schemas/TransactionId'
+        correlation_id:
+          description: |
+            1. correlation_id acknowledged by end txn processing system (i.e receiver) to co-relate all related requests in the context of a business transaction.
+            2. correlation_id uniqueness is ensured by txn processing system (i.e receiver)
+          type: string
+          maxLength: 99
+          example: '9876543210'
+        txnstatus_response:
+          type: object
+          properties:
+            txn_type:
+              type: string
+              description: txn type to fetch status
+              enum:
+                - on-disburse
+                - on-search
+            txn_status:
+              oneOf:
+                - $ref: '#/components/schemas/DisburseResponse'
+                - $ref: '#/components/schemas/SearchRequest'
+          example:
+            $ref: '#/components/schemas/DisburseResponse'
+          required:
+            - txn_type
+            - txn_status
+      required:
+        - transaction_id
+        - correlation_id
+        - txnstatus_response
+    Ack:
+      type: string
+      description: |
+        1. ACK: If the request is valid (for basic checks) and async callback (i.e webhook) will be invoked by reciever back to the sender.
+        2. NACK: If the request is valid (for basic checks) and there is no futher updates from reciever back to the sender.
+        3. ERR: If the reuqest is invalid and reciver can't process the request. error object holds error code, message.
+      enum:
+        - ACK
+        - NACK
+        - ERR
+    Amount:
+      type: string
+      description: Describes amount in decimal value format
+      pattern: '^\d{1,13}\.\d{1,2}$'
+    CurrencyCode:
+      description: <br> 1. Currency code allocated as per ISO 4217 format.<br> 2. Codes for the representation of currencies and funds.
+      type: string
+      pattern: '^[A-Z]{3,3}$'
+      example: SLL
+    DateTime:
+      description: |
+        1. All dates and timestamps are represented in [ISO 8601](https://www.iso.org/standard/40874.html) format including timezone - e.g 2022-12-04T17:20:07-04:00.
+      type: string
+      format: date-time
+      example: ''
+    Error:
+      description: |
+        Commumication layer Asyn errors that are returned as part of message acknowledgement.
+        1. Messages that are not parsable or message integrity check fails.
+        2. This object may be used across all transport layer protocols (https, sftp, messaging, etc,) to ack the receipt of a message.
+        3. Business context and related validation is NOT in scope of this error object.
+      type: object
+      properties:
+        code:
+          type: string
+          description: Standard error code
+          enum:
+            - err.request.bad
+            - err.request.unauthorized
+            - err.request.forbidden
+            - err.request.not_found
+            - err.request.timeout
+            - err.version.not_supported
+            - err.request.too_many_requests
+            - err.sender_id.invalid
+            - err.sender_uri.invalid
+            - err.receiver_id.invalid
+            - err.signature.missing
+            - err.signature.invalid
+            - err.encryption.invalid
+            - err.service.unavailable
+        message:
+          type: string
+          description: message to describe above error code
+          maxLength: 999
+    LanguageCode:
+      type: string
+      description: indicates language code. G2P Connect supports country codes as per ISO 639.3 standard
+      pattern: '^[a-z]{3,3}$'
+      example: en
+    FiscalData:
+      type: object
+      description: DIGIT fiscal information exchange specification
+      properties:
+        function:
+          type: string
+        administration:
+          type: string
+        location:
+          type: string
+        programs:
+          type: string
+        recipient_segment:
+          type: string
+        econimic_segment:
+          type: string
+        source_of_fund:
+          type: string
+        target_segment:
+          type: string
+
+    MsgCallbackHeader:
+      type: object
+      description: Message header
+      properties:
+        version:
+          description: Messaing protocol specification version being used
+          type: string
+          default: 1.0.0
+        message_id:
+          description: |
+            1. Unique message id to communicate between sender and receiver systems to realiable deliver the message over any transport layer i.e https, pub/sub, sftp etc.,
+            2. The scope of message_id end with successful ack of the message by the receiver.
+            3. To realy the message between hops, underlying relying parties may consider to store and forward the message with integirty, ie Signature intact.
+          type: string
+          example: '789'
+        message_ts:
+          $ref: '#/components/schemas/DateTime'
+        action:
+          description: G2P Connect specific action. Usually verb from the URI should go here to help store and fwd kind of processing requirements.
+          type: string
+        status:
+          $ref: '#/components/schemas/RequestStatus'
+        status_reason_code:
+          $ref: '#/components/schemas/MsgHeaderStatusReasonCode'
+        status_reason_message:
+          description: 'Status reascon code message, if any, Helps actionanble messaging for system/end users'
+          type: string
+          maxLength: 999
+        sender_id:
+          description: |
+            1. sender_id registered with the receiving system or gateway. 
+            2. Used for authorization, encryption, digital sign verfication, etc.,
+          type: string
+          example: civilregistry.example.org
+        receiver_id:
+          description: 'receiver id registered with the calling system. Used for authorization, encryption, digital sign verfication, etc., functions.'
+          type: string
+          example: registry.example.org
+        is_msg_encrypted:
+          description: Is message encrypted?
+          type: boolean
+          default: false
+      required:
+        - message_id
+        - message_ts
+        - action
+        - status
+    MsgHeader:
+      type: object
+      description: Message header
+      properties:
+        message_id:
+          description: |
+            1. Unique message id to communicate between sender and receiver systems to realiable deliver the message over any transport layer i.e https, pub/sub, sftp etc.,
+            2. The scope of message_id end with successful ack of the message by the receiver.
+            3. To realy the message between hops, underlying relying parties may consider to store and forward the message with integirty, ie Signature intact.
+          type: string
+          example: '123'
+        message_ts:
+          $ref: '#/components/schemas/DateTime'
+        action:
+          description: 'G2P Connect specific action. Usually verb from the URI. Helps in sync, async, store/fwd processing. Helps identity payload type in message property.'
+          type: string
+        sender_id:
+          description: |
+            1. sender_id registered with the receiving system or gateway. 
+            2. Used for authorization, encryption, digital sign verfication, etc.,
+          type: string
+          example: spp.example.org
+        sender_uri:
+          description: |
+            1. sender url to accept callbacks. Applicable only for async communications and if response ack_status is ACK.
+            2. Default uri is assumed to be configred on the gateway as part of sender/receiver onboarding. 
+            3. For SFTP based communications, this shall be set to server/folder details.
+          type: string
+          format: uri
+          example: 'https://spp.example.org/{namespace}/callback/on-search'
+        receiver_id:
+          description: 'receiver id registered with the calling system. Used for authorization, encryption, digital sign verfication, etc., functions.'
+          type: string
+          example: pymts.example.org
+        is_msg_encrypted:
+          description: Is message encrypted?
+          type: boolean
+          default: false
+      required:
+        - message_id
+        - message_ts
+        - action
+        - sender_id
+    MsgHeaderStatusReasonCode:
+      type: string
+      description: Message header related common status reason codes
+      enum:
+        - rjct.version.invalid
+        - rjct.message_id.duplicate
+        - rjct.message_ts.invalid
+        - rjct.action.invalid
+        - rjct.action.not_supported
+        - rjct.total_count.invalid
+        - rjct.total_count.limit_exceeded
+        - rjct.errors.too_many
+    MsgSignature:
+      type: string
+      description: 'Signature of {header}+{message} body verified using sender''s signing public key'
+      example: 'Signature:  namespace="g2p", kidId="{sender_id}|{unique_key_id}|{algorithm}", algorithm="ed25519", created="1606970629", expires="1607030629", headers="(created) (expires) digest", signature="Base64(signing content)'
+    Purpose:
+      description: 'Payment disbursement purpose e.g Salary, Farmer Relief 2023, etc.,'
+      type: string
+      maxLength: 99
+      example: Farmer Relief 2023
+    ReferenceId:
+      type: string
+      description: Unique reference_id set by txn initiating system for each request in a batch
+      example: '12345678901234567890'
+    RequestStatus:
+      type: string
+      description: 'Request (e.g disburse, link, unlink, resolve, issue, search, verify, etc.,) status: <br> 1. rcvd: Received; Request received <br> 2. pdng: Pending; Request initiated <br> 3. succ: Success; Request successful <br> 4. rjct: Rejected; Request rejected'
+      enum:
+        - rcvd
+        - pdng
+        - succ
+        - rjct
+    TransactionId:
+      description: |
+        1. transaction_id set by txn initiating system (i.e sender) to co-relate all related requests in the context of a business transaction.
+        2. transaction_id should be samme across processing systems/service end points.
+        2. transaction_id uniqueness is ensured by txn initiating system (i.e sender)
+      type: string
+      maxLength: 99
+      example: 0123456789
+
+  responses:
+    HttpErrorResponse:
+      description: HTTP layer error details
+      content:
+        application/json:
+          schema:
+            type: object
+            description: 'HTTP transport layer error codes. Used by components like gateways, LB responding with HTTP status codes 1xx, 2xx, 3xx, 4xx and 5xx'
+            properties:
+              errors:
+                items:
+                  type: object
+                  properties:
+                    code:
+                      type: string
+                      description: error code
+                    message:
+                      type: string
+                      description: error message
+    Response:
+      description: Acknowledgement of message received after successful validation of message and signature
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: object
+                properties:
+                  ack_status:
+                    $ref: '#/components/schemas/Ack'
+                  timestamp:
+                    $ref: '#/components/schemas/DateTime'
+                  error:
+                    $ref: '#/components/schemas/Error'
+                  correlation_id:
+                    $ref: '#/components/schemas/TxnStatusResponse/properties/correlation_id'
+                required:
+                  - ack_status
+                  - timestamp
+                  - correlation_id
+  securitySchemes:
+    Authorization:
+      type: http
+      scheme: bearer
+      bearerFormat: jwt
+      description: User/System authenticated access token; (jwt bearer) token returned from implementing system's authentication/token api end points. All systems must implement token api.

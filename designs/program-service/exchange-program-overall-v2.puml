@@ -1,0 +1,78 @@
+@startuml
+title Digit exchange flow with program service for all the apis
+actor User as User order 0
+participant MUKTA_ADAPTER as MUKTA_ADAPTER order 1
+participant HUDD_PROGRAM as HUDD_PROGRAM order 1
+participant HUDD_DX as HUDD_DX order 2
+participant FINANCE_DX as FINANCE_DX order 3
+participant FINANCE_PROGRAM as FINANCE_PROGRAM order 4
+participant IFMS_ADAPTER as IFMS_ADAPTER order 5
+participant KAFKA as KAFKA order 6
+
+activate User
+User -> HUDD_PROGRAM:  /program/_create
+activate HUDD_PROGRAM
+HUDD_PROGRAM -> HUDD_PROGRAM: validate request
+HUDD_PROGRAM -> KAFKA: Push request to kafka
+User <-- HUDD_PROGRAM:  Return success response
+deactivate HUDD_PROGRAM
+deactivate User
+HUDD_PROGRAM <- KAFKA: Listen program topic
+activate HUDD_PROGRAM
+HUDD_PROGRAM -> HUDD_PROGRAM: Create program based on \naction and receiver endpoint
+HUDD_PROGRAM -> HUDD_DX:  /program
+activate HUDD_DX
+HUDD_DX -> HUDD_DX: validate request
+HUDD_DX -> KAFKA: Push request to kafka
+HUDD_PROGRAM <-- HUDD_DX:  Return success response
+deactivate HUDD_DX
+deactivate HUDD_PROGRAM
+HUDD_DX <- KAFKA: Listen program topic
+activate HUDD_DX
+HUDD_DX -> HUDD_DX: Process request based on \naction and receiver endpoint
+HUDD_DX -> FINANCE_DX:  /program
+activate FINANCE_DX
+FINANCE_DX -> FINANCE_DX: validate request
+FINANCE_DX -> KAFKA: Push request to kafka
+HUDD_DX <-- FINANCE_DX:  Return success response
+deactivate HUDD_DX
+deactivate FINANCE_DX
+
+FINANCE_DX <- KAFKA: Listen program topic
+activate FINANCE_DX
+FINANCE_DX -> FINANCE_DX: Process request based on \naction and receiver endpoint
+FINANCE_DX -> FINANCE_PROGRAM:  /program
+activate FINANCE_PROGRAM
+FINANCE_PROGRAM -> FINANCE_PROGRAM: validate request
+FINANCE_PROGRAM -> KAFKA: Push request to kafka
+FINANCE_DX <-- FINANCE_PROGRAM :  Return success response
+deactivate FINANCE_PROGRAM
+deactivate HUDD_DX
+deactivate FINANCE_DX
+
+FINANCE_PROGRAM <- KAFKA: Listen program topic
+activate FINANCE_PROGRAM
+FINANCE_PROGRAM -> FINANCE_PROGRAM: Save program details based on \naction and receiver endpoint,\n e.g Create program code
+FINANCE_PROGRAM -> FINANCE_PROGRAM: Create on-program request based on \nrequest and receiver endpoint
+FINANCE_PROGRAM -> FINANCE_DX:  /on-program
+activate FINANCE_DX
+FINANCE_PROGRAM <-- FINANCE_DX:  Return success response
+deactivate FINANCE_PROGRAM
+FINANCE_DX -> HUDD_DX:  /on-program
+activate HUDD_DX
+HUDD_DX <- FINANCE_DX:  Return success response
+deactivate FINANCE_DX
+HUDD_DX -> HUDD_PROGRAM:  /on-program/_create
+activate HUDD_PROGRAM
+HUDD_PROGRAM -> HUDD_PROGRAM: validate request
+HUDD_PROGRAM -> KAFKA: Push request to kafka
+HUDD_PROGRAM -> HUDD_DX:  Return success response
+deactivate HUDD_PROGRAM
+deactivate HUDD_DX
+
+HUDD_PROGRAM <- KAFKA: Listen program topic
+activate HUDD_PROGRAM
+HUDD_PROGRAM -> HUDD_PROGRAM: Update program details based on \naction and receiver endpoint
+deactivate HUDD_DX
+
+@enduml

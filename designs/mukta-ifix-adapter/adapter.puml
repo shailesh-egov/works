@@ -1,0 +1,147 @@
+@startuml
+actor User as User order 0
+participant ExpenseService as ExpenseService order 1
+participant MUKTA_IFIX_ADAPTER as MUKTA_IFIX_ADAPTER order 2
+participant PROGRAM_SERVICE as PROGRAM_SERVICE order 3
+participant IFMSAdapter as IFMSAdapter order 4
+participant IFMSJit as IFMSJit order 5
+participant Kafka as Kafka order 6
+participant Persister as Persister order 7
+participant Indexer as Indexer order 7
+participant Scheduler as Scheduler order 8
+
+group Payment Create flow
+User -> ExpenseService: Calls _create/_update API \n with bill details
+activate User #119911
+activate ExpenseService #999911
+ExpenseService -> Kafka: Push created/update bill
+User <-- ExpenseService: Return success response
+deactivate ExpenseService #999911
+deactivate User #119911
+Kafka <- Persister: Listen to Payment/Bill/PI \ncreate/update topics and \npersist the data
+Kafka <- Indexer: Listen to Payment/Bill/PI \ncreate/update topics and \nindex the data
+
+Scheduler -> MUKTA_IFIX_ADAPTER: Call payment scheduler to create payment
+activate MUKTA_IFIX_ADAPTER #F0FF11
+ExpenseService <- MUKTA_IFIX_ADAPTER: Call bill/_search api to get approved bills \nfor which payment is not created
+activate ExpenseService #999911
+ExpenseService --> MUKTA_IFIX_ADAPTER: Return list of bills with success response
+deactivate ExpenseService #999911
+MUKTA_IFIX_ADAPTER -> MUKTA_IFIX_ADAPTER: Create payment payload if bill is approved
+ExpenseService <- MUKTA_IFIX_ADAPTER: Call payment create api
+activate ExpenseService #999911
+ExpenseService -> ExpenseService: Validate payment request and enrich payload
+ExpenseService -> Kafka: Push payment payload
+ExpenseService --> MUKTA_IFIX_ADAPTER: Return 201 success response
+deactivate ExpenseService #999911
+deactivate MUKTA_IFIX_ADAPTER #F0FF11
+end
+
+group disburse flow
+MUKTA_IFIX_ADAPTER <- Kafka: MUKTA_IFIX_ADAPTER consumer will listen payment create topic
+activate MUKTA_IFIX_ADAPTER #F0FF11
+User -> MUKTA_IFIX_ADAPTER: Call /pi/v1/_create api to create PI
+MUKTA_IFIX_ADAPTER -> MUKTA_IFIX_ADAPTER: Process payment request,\nencrich banck details \nand create Disburse payload
+
+activate PROGRAM_SERVICE #F0AF11
+MUKTA_IFIX_ADAPTER -> PROGRAM_SERVICE: call disburse api
+PROGRAM_SERVICE -> PROGRAM_SERVICE: Validate disburse request
+PROGRAM_SERVICE -> Kafka: Push disburse request to kafka topic
+MUKTA_IFIX_ADAPTER <-- PROGRAM_SERVICE: Return disburse response
+deactivate MUKTA_IFIX_ADAPTER #F0FF11
+deactivate PROGRAM_SERVICE #F0AF11
+
+
+PROGRAM_SERVICE <- Kafka: disburse-consumer: Listen to PROGRAM_SERVICE disburse topic and process request
+activate PROGRAM_SERVICE #F0AF11
+PROGRAM_SERVICE -> PROGRAM_SERVICE: Enrich program details in payload
+PROGRAM_SERVICE -> Kafka: Push disburse request to kafka topic
+Kafka <- Persister: Listen to PROGRAM_SERVICE disburse persist topic \nand persist request
+PROGRAM_SERVICE -> IFMSAdapter: Call disburse api with disburse payload
+activate IFMSAdapter #607080
+IFMSAdapter -> IFMSAdapter: Validate disburse request
+IFMSAdapter -> Kafka: Push disburse payload
+PROGRAM_SERVICE <-- IFMSAdapter: Return payment pushed response
+Kafka <- Persister: Listen to IFMSAdapter disburse persist topic \nand persist request
+deactivate IFMSAdapter #607080
+deactivate PROGRAM_SERVICE #F0AF11
+end
+
+
+group on-disburse flow
+
+IFMSAdapter <- Kafka: Listen to disburse topic and \nstart processing request
+activate IFMSAdapter #607080
+activate IFMSJit #FFAF00
+IFMSAdapter -> IFMSJit: Call login api
+IFMSAdapter <-- IFMSJit: Return auth token
+IFMSAdapter -> IFMSAdapter: Create Payment Instruction payload
+IFMSAdapter -> IFMSJit: Send payment request
+IFMSAdapter <-- IFMSJit: Return success response
+deactivate IFMSJit #FFAF00
+IFMSAdapter -> IFMSAdapter: Update PI payload
+IFMSAdapter -> Kafka: Push PI payload to kafka for persist
+Kafka <- Persister: Listen to MUKTA_IFIX_ADAPTER pi-create topic \nand save PI request
+activate PROGRAM_SERVICE #F0AF11
+PROGRAM_SERVICE <- IFMSAdapter: call on-disburse api
+PROGRAM_SERVICE -> Kafka: Push on-disburse request
+PROGRAM_SERVICE --> IFMSAdapter: Return success response
+
+deactivate IFMSAdapter #607080
+PROGRAM_SERVICE <- Kafka: on-disburse consumer picks the request
+PROGRAM_SERVICE -> PROGRAM_SERVICE: Process on-disburse request
+
+MUKTA_IFIX_ADAPTER <- PROGRAM_SERVICE: Call on-disburse api
+activate MUKTA_IFIX_ADAPTER #F0FF11
+MUKTA_IFIX_ADAPTER -> Kafka: Push on-disburse request
+MUKTA_IFIX_ADAPTER --> PROGRAM_SERVICE: Return success response
+MUKTA_IFIX_ADAPTER <- Kafka: on-disburse consumer pics the request
+MUKTA_IFIX_ADAPTER -> MUKTA_IFIX_ADAPTER: Process on-disburse request \nand update PI status
+ExpenseService <- MUKTA_IFIX_ADAPTER: Call payment update api
+activate ExpenseService #999911
+ExpenseService --> MUKTA_IFIX_ADAPTER: Return 201 success response
+deactivate ExpenseService #999911
+deactivate MUKTA_IFIX_ADAPTER #F0FF11
+deactivate PROGRAM_SERVICE #F0AF11
+end
+
+
+group disburse/tx/on_status flow
+Scheduler -> IFMSAdapter: Execute cronjob scheduler \ne.g. PIS, PAG, PD, FD
+activate IFMSAdapter #607080
+IFMSAdapter -> IFMSJit: Fetch the PI status and call multiple api's
+activate IFMSJit #FFAF00
+IFMSAdapter <-- IFMSJit: Return PI status response
+deactivate IFMSJit #FFAF00
+PROGRAM_SERVICE <- IFMSAdapter: Call disburse/tx/on_status api with PI status
+activate PROGRAM_SERVICE #F0AF11
+PROGRAM_SERVICE -> Kafka: Push disburse/tx/on_status request
+PROGRAM_SERVICE --> IFMSAdapter: Return success response
+deactivate IFMSAdapter #607080
+PROGRAM_SERVICE <- Kafka: consumer picks the disburse/tx/on_status request
+PROGRAM_SERVICE -> PROGRAM_SERVICE: Process disburse/tx/on_status request
+MUKTA_IFIX_ADAPTER <- PROGRAM_SERVICE: Call disburse/tx/on_status api
+activate MUKTA_IFIX_ADAPTER #F0FF11
+MUKTA_IFIX_ADAPTER -> Kafka: Push disburse/tx/on_status request
+MUKTA_IFIX_ADAPTER --> PROGRAM_SERVICE: Return success response
+deactivate MUKTA_IFIX_ADAPTER #F0FF11
+deactivate PROGRAM_SERVICE #F0AF11
+
+MUKTA_IFIX_ADAPTER <- Kafka: disburse/tx/on_status consumer picks the request
+activate MUKTA_IFIX_ADAPTER #F0FF11
+MUKTA_IFIX_ADAPTER -> MUKTA_IFIX_ADAPTER: Process disburse/tx/on_status request
+ExpenseService <- MUKTA_IFIX_ADAPTER: Call payment update api
+activate ExpenseService #999911
+ExpenseService --> MUKTA_IFIX_ADAPTER: Return 201 success response
+deactivate ExpenseService #999911
+deactivate MUKTA_IFIX_ADAPTER #F0FF11
+
+User -> MUKTA_IFIX_ADAPTER: Request for payment status
+activate User #119911
+activate MUKTA_IFIX_ADAPTER #F0FF11
+User <-- MUKTA_IFIX_ADAPTER: Return payment status
+deactivate MUKTA_IFIX_ADAPTER #F0FF11
+deactivate User #119911
+end
+
+@enduml

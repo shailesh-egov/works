@@ -1,0 +1,37 @@
+@startuml
+title Payment Status changes between Works IFMS and Program Service
+actor User as User order 0
+participant  ExpenseService as "Expense Service" order 1
+participant MuktaIFixAdapter as "Mukta IFix Adapter" order 2
+participant ProgramService as ProgramService order 3
+participant IFMSAdapter as IFMSAdapter order 4
+participant Scheduler as Scheduler order 5
+participant IFMSJit as IFMSJit order 6
+
+group Payment Create
+    User -> ExpenseService: Request for bill create using /bill/_create API
+    activate ExpenseService
+    ExpenseService -> User: Return bill details, \npayment status is NULL
+    deactivate ExpenseService
+
+    User -> ExpenseService: Request for payment create using /payment/_create API
+    activate ExpenseService
+    ExpenseService -> ExpenseService: Update payment status to \nINITIATED for linked bills
+    ExpenseService -> User: Return Payment details, \npayment status is INITIATED
+    deactivate ExpenseService
+end
+
+group Disburse Create
+    User -> MuktaIFixAdapter: Request for disburse create using \n /disburse/_create API or pick from consumer
+    activate MuktaIFixAdapter
+    MuktaIFixAdapter -> MuktaIFixAdapter: Update disburse status to \nINITIATED for linked payment
+    MuktaIFixAdapter -> ProgramService: call /disburse/_create API
+    alt if If any error occured while posing disburse then
+        MuktaIFixAdapter <-- MuktaIFixAdapter: Update status to FAILED
+        ExpenseService <-- MuktaIFixAdapter: Call payment/_update api to update payment status to FAILED
+    end
+    MuktaIFixAdapter -> User: Return disburse details, \ndisburse status is INITIATED
+    deactivate MuktaIFixAdapter
+end
+
+@enduml

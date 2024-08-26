@@ -1,0 +1,34 @@
+@startuml
+title Download Payment Instructions List PDF
+'https://plantuml.com/sequence-diagram
+'autonumber
+participant USER as USER order 1
+participant WorksPDF as "WORKS PDF" order 2
+participant WMS as WMS order 3
+participant PDF as "PDF Service" order 4
+
+USER -> WorksPDF: Call create PaymentInstPDF
+activate USER
+activate WorksPDF
+WorksPDF -> WMS: Request for PI Details
+activate WMS
+WMS -> WMS: Process request \nGet data from ES
+WorksPDF <-- WMS: Return PI details
+deactivate WMS
+alt if There are more records
+WorksPDF -> WMS: Request for PI Details
+activate WMS
+WMS -> WMS: Process request \nGet data from ES
+WorksPDF <-- WMS: Return PI details
+deactivate WMS
+WorksPDF -> WorksPDF: Prepare PDF Request
+WorksPDF -> PDF: Call create pdf API
+activate PDF
+WorksPDF <-- PDF: Return PDF Response
+deactivate PDF
+USER <-- WorksPDF: Return PDF
+end
+deactivate USER
+@enduml
+
+

@@ -1,0 +1,212 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Payment Tracker
+  description: This service fetches data from elasticsearch and return the search response
+paths:
+  /wms/aggregation/project-payments/_search:
+    post:
+      tags:
+        - WMS Service
+      summary: Aggregate payment details by project
+      description: Search Statement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentSearchCriteria'
+      responses:
+        '202':
+          description: Successful Fetched the statement
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/PaymentSearchResponse'
+        '400':
+          description: Invalid input.
+          content:
+            '*/*':
+              schema:
+                $ref: https://raw.githubusercontent.com/egovernments/municipal-services/common-contract/docs/common-contract-v2-0-0.yml#/components/schemas/ErrorRes
+
+  /mukta-bff/report/projects-payment:
+    post:
+      tags:
+        - BFF Service
+      summary: Aggregate payment details by project
+      description: Search Statement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentDownloadCriteria'
+      responses:
+        '202':
+          description: An Excel file containing users data
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Invalid input.
+          content:
+            '*/*':
+              schema:
+                $ref: https://raw.githubusercontent.com/egovernments/municipal-services/common-contract/docs/common-contract-v2-0-0.yml#/components/schemas/ErrorRes
+
+
+components:
+  schemas:
+    PaymentSearchResponse:
+      type: object
+      properties:
+        ResponseInfo:
+          $ref: https://raw.githubusercontent.com/egovernments/egov-services/master/docs/common/contracts/v1-0-0.yml#/definitions/ResponseInfo
+        Projects:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/ProjectAgg'
+              - $ref: '#/components/schemas/PaymentDetails'
+
+        Total:
+          $ref: '#/components/schemas/PaymentDetails'
+
+
+    ProjectAgg:
+      type: object
+      properties:
+        project_id:
+          type: string
+          description: Poject formated ID
+          example: PJ/2023-24/000199
+          minLength: 2
+          maxLength: 64
+          readOnly: true
+
+
+    PaymentDetails:
+      type: object
+      properties:
+        estimated_amount:
+          type: number
+          description: This is total billed amount that needs to be paid
+          example: 1500000
+          readOnly: true
+        total:
+          type: number
+          description: This is total billed amount that needs to be paid
+          example: 1212412.50
+          readOnly: true
+        paid_amount:
+          type: number
+          description: This is total billed amount that needs to be paid
+          example: 100000.12
+          readOnly: true
+        remaining_amount:
+          type: number
+          description: This is subtraction of total and paid amount
+          example: 212412.12
+          readOnly: true
+        payment_details:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentDetailByType'
+
+    PaymentDetailByType:
+      type: object
+      properties:
+        bill_type:
+          type: string
+          description: Unique identifier of the Line Item.
+          example: 'EXPENSE.PURCHASE'
+          minLength: 2
+          maxLength: 64
+          readOnly: true
+        total:
+          type: number
+          description: This is total billed amount for that bill type
+          example: 1212412.50
+          readOnly: true
+        paid_amount:
+          type: number
+          description: This is total billed amount that needs to be paid
+          example: 100000.12
+          readOnly: true
+        remaining_amount:
+          type: number
+          description: This is subtraction of total and paid amount
+          example: 212412.12
+          readOnly: true
+
+    PaymentSearchCriteria:
+      type: object
+      properties:
+        RequestInfo:
+          $ref: https://raw.githubusercontent.com/egovernments/egov-services/master/docs/common/contracts/v1-0-0.yml#/definitions/RequestInfo
+        searchCriteria:
+          $ref: '#/components/schemas/SearchCriteria'
+    SearchCriteria:
+      type: object
+      properties:
+        tenantId:
+          type: string
+          description: Unique identifier of the tenant that could be a department/ulb/state
+          minLength: 2
+          maxLength: 64
+          example: pb.jalandhar OR dwss
+        projectId:
+          type: string
+          description: project id
+          example: PJ/2023-24/000199
+          minLength: 2
+          maxLength: 64
+        projectName:
+          type: string
+        projectType:
+          type: string
+        ward:
+          type: string
+        limit:
+          type: number
+          example: 10
+        afterKey:
+          type: string
+          description: Last project id that was came in the previous response
+          example: PJ/2023-24/000199
+      required:
+        - tenantId
+        - limit
+
+    PaymentDownloadCriteria:
+      type: object
+      properties:
+        RequestInfo:
+          $ref: https://raw.githubusercontent.com/egovernments/egov-services/master/docs/common/contracts/v1-0-0.yml#/definitions/RequestInfo
+        searchCriteria:
+          $ref: '#/components/schemas/ExcelDownloadSearchCriteria'
+
+    ExcelDownloadSearchCriteria:
+      type: object
+      properties:
+        tenantId:
+          type: string
+          description: Unique identifier of the tenant that could be a department/ulb/state
+          minLength: 2
+          maxLength: 64
+          example: pb.jalandhar OR dwss
+        projectId:
+          type: string
+          description: project id
+          example: PJ/2023-24/000199
+          minLength: 2
+          maxLength: 64
+        projectName:
+          type: string
+        projectType:
+          type: string
+        ward:
+          type: string
+      required:
+        - tenantId

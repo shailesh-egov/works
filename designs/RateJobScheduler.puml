@@ -1,0 +1,51 @@
+@startuml job scheduler
+actor User as User order 0
+participant RateAnalysisService as RateAnalysisService order 1
+participant MdmsV2 as MdmsV2 order 2
+participant IdGenService as IdGenService order 3
+participant Kafka as Kafka order 4
+
+group Schedule API to create Rates
+User -> RateAnalysisService : /rate-analysis/v1/scheduler/_create
+activate RateAnalysisService
+activate User
+RateAnalysisService -> RateAnalysisService: Validate request like effective from date\n passed in the scheduled JOB request\n is of currentDate or not
+RateAnalysisService-> IdGenService: Create Id Format for the job
+IdGenService --> RateAnalysisService: Job Id
+RateAnalysisService -> RateAnalysisService: Enrich Request with Job Id \nand status will be INITIATED
+RateAnalysisService-> Kafka: push request to kafka
+RateAnalysisService --> User: Job created
+deactivate RateAnalysisService
+deactivate User
+Kafka -> RateAnalysisService: Consume created request
+activate RateAnalysisService
+RateAnalysisService -> Kafka: Update status to in-progress
+RateAnalysisService -> RateAnalysisService: Construct MDMS request based on \nscheduler request
+RateAnalysisService -> MdmsV2 : Request for SOR Details
+activate MdmsV2
+RateAnalysisService <-- MdmsV2: SOR Details
+deactivate MdmsV2
+'RateAnalysisService -> MdmsV2 : Validate SOR ids passed is present\n in syste/home/shailesh/egovernments/worksm or not
+'RateAnalysisService -> MdmsV2: Validate SOR Composition is present or not
+RateAnalysisService -> RateAnalysisService:  For Each SOR create request for generate rate, \nCall rate create service, \nProcess response and update request
+alt if Response of any request is failed
+    RateAnalysisService -> Kafka: Update status to failed
+else
+    RateAnalysisService-> Kafka: Update Status to success
+end
+deactivate RateAnalysisService
+end
+
+group Search for Schedules
+activate User
+User -> RateAnalysisService: /rate-analysis/v1/scheduler/search
+activate RateAnalysisService
+RateAnalysisService -> RateAnalysisService: Validate search request
+RateAnalysisService -> RateAnalysisService: Search for the scheduled jobs
+'RateAnalysisService-> RateAnalysisService: Logic to fetch the SOR's mapped in\n scheduled job
+'RateAnalysisService-> MdmsV2: Fetch the rates of each SOR\n and check its effectiveFrom Date\n matches JOB scheduler effectiveFrom date\n then update the lineitems status accordingly
+RateAnalysisService-> User: Return scheduled jobs
+deactivate RateAnalysisService
+deactivate User
+end
+@enduml

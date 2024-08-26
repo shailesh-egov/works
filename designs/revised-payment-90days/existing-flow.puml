@@ -1,0 +1,94 @@
+@startuml
+actor USER as USER order 0
+participant MUKTA_ADAPTER as MUKTA_ADAPTER order 1
+participant PS as "Program Service" order 2
+participant IFMS_ADAPTER as IFMS_ADAPTER order 3
+participant JIT as JIT order 6
+
+group Existing flow For Original & Revised PI Creation
+USER -> MUKTA_ADAPTER: Request for Payment
+activate USER
+activate MUKTA_ADAPTER
+MUKTA_ADAPTER -> PS: Request for Payment
+activate PS
+PS -> PS: Get previous created payments for that ref
+alt if Payment is already created for that ref and status is Partial
+    PS -> PS: Get Previous created payment and \n get the sanctionId
+end
+alt if for original PI
+    PS -> PS: 1. Get for sanction & Available funds \n based on program \n 2.Select Sanciton \n 3.Enrich sanctionId 4. Debit amount from sanction
+end
+PS -> IFMS_ADAPTER: Request for Payment
+
+activate IFMS_ADAPTER
+IFMS_ADAPTER -> IFMS_ADAPTER: Get previous created payments with same ref
+alt if Previous payments are created with Partial status
+    IFMS_ADAPTER -> IFMS_ADAPTER: 1. Get all previous created PI's \n 2. Create COR Request
+    IFMS_ADAPTER -> JIT: Request COR create
+else
+    IFMS_ADAPTER -> IFMS_ADAPTER: 1. Get sanction details \n 2. Create PI Request \n 3. Enrich PI request
+    IFMS_ADAPTER -> JIT: Request PI create
+end
+IFMS_ADAPTER <-- JIT: Create response
+alt if Original PI is created
+    IFMS_ADAPTER -> IFMS_ADAPTER: Debit amount from fund summary
+end
+PS <-- IFMS_ADAPTER: Return disburse response
+deactivate IFMS_ADAPTER
+MUKTA_ADAPTER <-- PS: Return Disburse response
+deactivate PS
+USER <-- MUKTA_ADAPTER: Payment Response
+deactivate MUKTA_ADAPTER
+deactivate USER
+end
+
+group New Flow for 90 days logic
+USER -> MUKTA_ADAPTER: Request for Payment
+activate USER
+activate MUKTA_ADAPTER
+MUKTA_ADAPTER -> PS: Request for Payment
+activate PS
+PS -> PS: Get previous created payments for that ref
+alt if Payment is already created for that ref and status is PARTIAL or COMPLETED
+    PS -> PS: Get the previous successfully processed PI
+    alt Validate Dates from current Dates [If pi created data is grater then 90 days or \nIf payment is created in last Financial year and today's date is 30 April]
+        PS -> PS: Create Original PI
+    else
+        PS -> PS: Create Revised PI
+    end
+end
+alt if create original PI
+    PS -> PS: 1. Get for sanction & Available funds \n based on program \n 2.Select Sanciton \n 3.Enrich sanctionId 4. Debit amount from sanction
+end
+PS -> IFMS_ADAPTER: Request for Payment
+activate IFMS_ADAPTER
+IFMS_ADAPTER -> IFMS_ADAPTER: Get previous created payments with same ref
+alt if Payment is already created for that ref and status is PARTIAL or COMPLETED
+    IFMS_ADAPTER -> IFMS_ADAPTER: Get the previous successfully processed PI
+    alt Validate Dates from current Dates [If pi created data is grater then 90 days or \nIf payment is created in last Financial year and today's date is 30 April]
+        IFMS_ADAPTER -> IFMS_ADAPTER: Create Original PI
+    else
+        IFMS_ADAPTER -> IFMS_ADAPTER: Create Revised PI
+    end
+end
+alt if Create Revised PI
+    IFMS_ADAPTER -> IFMS_ADAPTER: 1. Get all previous created PI's \n 2. Create COR Request
+    IFMS_ADAPTER -> JIT: Request COR create
+else
+    IFMS_ADAPTER -> IFMS_ADAPTER: 1. Get sanction details \n 2. Create PI Request \n 3. Enrich PI request
+    IFMS_ADAPTER -> JIT: Request PI create
+end
+IFMS_ADAPTER <-- JIT: Create response
+alt if Original PI is created
+    IFMS_ADAPTER -> IFMS_ADAPTER: Debit amount from fund summary
+end
+PS <-- IFMS_ADAPTER: Return disburse response
+deactivate IFMS_ADAPTER
+MUKTA_ADAPTER <-- PS: Return Disburse response
+deactivate PS
+USER <-- MUKTA_ADAPTER: Payment Response
+deactivate MUKTA_ADAPTER
+deactivate USER
+end
+
+@enduml

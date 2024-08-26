@@ -1,0 +1,97 @@
+Table eg_program_exchange_message {
+  id varchar(64) [pk]
+  location_code varchar(64) [not null]
+  type varchar(64) [not null] // eg. PROGRAM, ALLOCATION, DISBURSEMENT
+  parent_id varchar(64)
+  schema_version varchar(50)
+  action varchar(50)  [not null]
+  function_code varchar(128)
+  administration_code varchar(128)
+  program_code varchar(64)
+  status varchar(64)
+  recipient_segment_code varchar(128)
+  economic_segment_code varchar(128)
+  source_of_found_code varchar(128)
+  target_segment_code varchar(128)
+  additional_details jsonb
+  createdtime bigint
+  createdby varchar(256)
+  lastmodifiedtime bigint
+  lastmodifiedby varchar(256)
+}
+
+Table eg_program_request_header {
+  id varchar(64) [pk]
+  exchange_id varchar(64)
+  message_id varchar(64)
+  message_ts varchar(64)
+  action varchar(20)
+  sender_id varchar(128)
+  sender_uri varchar(256)
+  receiver_id varchar(128)
+  additional_details jsonb
+  is_msg_encrypted boolean
+  createdtime bigint
+  createdby varchar(256)
+  lastmodifiedtime bigint
+  lastmodifiedby varchar(256)
+}
+
+Table eg_program {
+  id varchar(64) [pk]
+  exchange_id varchar(64)
+  name varchar(64)
+  description varchar(256)
+
+}
+
+Table eg_program_sanction {
+  id varchar(256) [pk]
+  exchange_id varchar(64)
+  amount double
+  createdtime bigint
+  createdby varchar(256)
+  lastmodifiedtime bigint
+  lastmodifiedby varchar(256)
+}
+
+Table eg_program_allocation {
+  id varchar(64) [pk]
+  exchange_id varchar(64)
+  sanctionId varchar(64)
+  amount double
+  createdtime bigint
+  createdby varchar(256)
+  lastmodifiedtime bigint
+  lastmodifiedby varchar(256)
+}
+
+Table eg_program_disbuse {
+  id varchar(64) [pk]
+  exchange_id varchar(64)
+  target_id varchar(64)
+  allocation_ids list
+  account_code varchar(50)
+  net_amount double
+  gross_amount double
+  createdtime bigint
+  createdby varchar(256)
+  lastmodifiedtime bigint
+  lastmodifiedby varchar(256)
+}
+
+
+
+Ref: "eg_program_exchange_message"."id" < "eg_program_request_header"."exchange_id"
+
+Ref: "eg_program_sanction"."id" < "eg_program_allocation"."sanctionId"
+
+Ref: "eg_program_exchange_message"."id" < "eg_program_sanction"."exchange_id"
+
+Ref: "eg_program_exchange_message"."id" < "eg_program_allocation"."exchange_id"
+
+Ref: "eg_program_exchange_message"."id" < "eg_program_disbuse"."exchange_id"
+
+Ref: "eg_program_exchange_message"."id" < "eg_program"."exchange_id"
+
+Ref: "eg_program_allocation"."id" < "eg_program_disbuse"."allocation_ids"

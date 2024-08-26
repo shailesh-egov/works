@@ -1,0 +1,57 @@
+@startuml
+title IFMS ADAPTER - PIS flow for uUpdate PI status and call on-disburse
+actor User as User order 0
+participant ProgramService as ProgramService order 1
+participant IFMSAdapter as IFMSAdapter order 2
+participant IFMSJit as IFMSJit order 3
+participant MDMS as MDMS order 3
+participant DB as DB order 5
+participant ES as ES order 6
+participant Scheduler as Scheduler order 8
+
+
+'User -> IFMSAdapter: Request for PI details using /pi/search API
+'activate IFMSAdapter
+'IFMSAdapter -> DB: Query PI details from DB
+'User <-- IFMSAdapter: Return PI details
+'deactivate IFMSAdapter
+
+group PIS request construction flow
+User -[hidden]> Scheduler
+activate Scheduler
+Scheduler -> IFMSAdapter: call status fetch by ServiceID PAG
+activate IFMSAdapter
+IFMSAdapter -> DB: Query for all PI where status is APPROVED
+DB -> IFMSAdapter: return list of PI
+alt Loop this for each PI
+    IFMSAdapter -> MDMS: Query for SSU details for specific tenantId
+    IFMSAdapter <-- MDMS: return SSU Details
+    IFMSAdapter -> IFMSAdapter: Construct PAG request for that PI
+    group Authenticate and Query for Status
+        IFMSAdapter -> IFMSJit: Call login API
+        activate IFMSJit
+        IFMSAdapter <-- IFMSJit: Return auth token
+        deactivate IFMSJit
+        IFMSAdapter -> IFMSJit: Call API with ServiceId and query params
+        activate IFMSJit
+        IFMSAdapter <-- IFMSJit: Return Status details
+        deactivate IFMSJit
+    end
+    alt GET Success with Response
+        IFMSAdapter -> IFMSAdapter: Update PI details based on PAG response,\n e.g. Status to IN_PROCESS, adviceId, finYear, \nadviceDate, onlineBillRefNo, tokenNumber, tokenDate
+    else IF GET empty response or error then Continue
+    end
+    IFMSAdapter -> IFMSAdapter: construct status log entry in PI
+    IFMSAdapter -> DB: Update PI in DB
+    IFMSAdapter -> DB: Update PI in ES
+    IFMSAdapter -> IFMSAdapter: Construct on-disburse request for PI
+    IFMSAdapter -> ProgramService: call on-disburse API
+    activate ProgramService
+    IFMSAdapter <-- ProgramService: return success response
+    deactivate ProgramService
+end
+Scheduler <-- IFMSAdapter: return success response
+deactivate Scheduler
+deactivate IFMSAdapter
+end
+@enduml

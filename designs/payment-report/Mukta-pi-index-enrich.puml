@@ -1,0 +1,48 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+title PI index
+
+participant USER as USER order 1
+participant MUKTA_IFIX_ADAPTER as "iFix Adapter" order 2
+participant PS as "Program Service" order 3
+participant KAFKA  order 4
+'participant ES  order 5
+'participant DB  order 6
+participant INDEXER order 7
+participant MUKTA_SERVICES order 8
+
+group Existing flow
+USER -> MUKTA_IFIX_ADAPTER: Create a payment request
+activate USER
+activate MUKTA_IFIX_ADAPTER
+MUKTA_IFIX_ADAPTER -> MUKTA_IFIX_ADAPTER: Enrich request
+MUKTA_IFIX_ADAPTER -> KAFKA: Send request to save data
+MUKTA_IFIX_ADAPTER -> PS: Send payment request
+MUKTA_IFIX_ADAPTER <-- PS: Return response
+USER <-- MUKTA_IFIX_ADAPTER: Return
+deactivate USER
+deactivate MUKTA_IFIX_ADAPTER
+INDEXER -> KAFKA: Listen to PI create & update topic & \n Update the data in ES
+end
+
+group Updated flow with Enrichment
+USER -> MUKTA_IFIX_ADAPTER: Create a payment request
+activate USER
+activate MUKTA_IFIX_ADAPTER
+MUKTA_IFIX_ADAPTER -> MUKTA_IFIX_ADAPTER: Enrich request
+MUKTA_IFIX_ADAPTER -> KAFKA: Send request to save data
+MUKTA_IFIX_ADAPTER -> PS: Send payment request
+MUKTA_IFIX_ADAPTER <-- PS: Return response
+USER <-- MUKTA_IFIX_ADAPTER: Return Response
+deactivate USER
+deactivate MUKTA_IFIX_ADAPTER
+
+MUKTA_IFIX_ADAPTER <- KAFKA: Consumer Listen to PI Create & Update Topic
+activate MUKTA_IFIX_ADAPTER
+MUKTA_IFIX_ADAPTER -> MUKTA_SERVICES: Fetch required data for additional enrichment
+MUKTA_IFIX_ADAPTER -> MUKTA_IFIX_ADAPTER: Enrich required data in PI request
+MUKTA_IFIX_ADAPTER -> KAFKA: Send enriched data to another topic for index
+deactivate MUKTA_IFIX_ADAPTER
+INDEXER -> KAFKA: Listen to PI enrichment topic & \n Update the data in ES
+end
+@enduml
