@@ -1,0 +1,39 @@
+@startuml
+title "Program Setup"
+actor CENTER_USER_1 as "Center Manager" order 0 #ddff41
+participant DEPT_1_iFIX as "Center Program\niFix" order 1 #FAA45f
+participant DEPT_2_iFIX as "Center Funding\niFix" order 2 #DAD45f
+participant DEPT_3_iFIX as "State Funding\niFix" order 3 #DAD45f
+participant DEPT_4_iFIX as "State Implementing\niFix" order 4 #DAD45f
+actor STATE_USER_2 as "State Manager" order 5 #00ff41
+actor STATE_USER_3 as "Teacher/\nStudent" order 9 #00ff41
+
+group Program Setup at Center
+CENTER_USER_1 -> DEPT_1_iFIX: program
+DEPT_1_iFIX -> DEPT_2_iFIX: program
+DEPT_1_iFIX <- DEPT_2_iFIX: program approved
+
+CENTER_USER_1 -> DEPT_1_iFIX: Budget
+DEPT_1_iFIX -> DEPT_2_iFIX: Budget
+DEPT_1_iFIX <- DEPT_2_iFIX: Budget approved
+
+CENTER_USER_1 -> DEPT_1_iFIX: program launch
+DEPT_1_iFIX -> DEPT_3_iFIX: Notify program details
+end
+
+group Program Setup at State
+STATE_USER_2 -> DEPT_4_iFIX: program
+DEPT_4_iFIX -> DEPT_3_iFIX: program
+DEPT_4_iFIX <- DEPT_3_iFIX: program approved
+
+STATE_USER_2 -> DEPT_4_iFIX: Budget
+DEPT_4_iFIX -> DEPT_3_iFIX: Budget
+DEPT_4_iFIX <- DEPT_3_iFIX: Budget approved
+
+STATE_USER_2 -> DEPT_4_iFIX: program launch
+DEPT_4_iFIX -> STATE_USER_3: Notify program launch
+end
+
+
+
+@enduml

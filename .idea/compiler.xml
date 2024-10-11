@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="measurement-book-service" />
+        <module name="ifms-adapter" />
+        <module name="egov-persister" />
+        <module name="measurement-registry" />
+        <module name="organisation" />
+        <module name="egov-mdms-service-test (1)" />
+        <module name="works-management-service" />
+        <module name="digit-exchange" />
+        <module name="expense" />
+        <module name="contracts" />
+        <module name="bankaccounts" />
+        <module name="mukta-ifix-adapter" />
+        <module name="muster-roll" />
+        <module name="egov-workflow-v2" />
+        <module name="expense-calculator" />
+        <module name="egov-idgen" />
+        <module name="egov-mdms-service-test" />
+        <module name="attendance" />
+        <module name="program-service" />
+        <module name="estimates" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="billing-service" target="1.8" />
+      <module name="collection-services" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="attendance" options="-parameters" />
+      <module name="bankaccounts" options="-parameters" />
+      <module name="billing-service" options="-parameters" />
+      <module name="collection-services" options="-parameters" />
+      <module name="contracts" options="-parameters" />
+      <module name="digit-exchange" options="-parameters" />
+      <module name="egov-idgen" options="-parameters" />
+      <module name="egov-mdms-service-test" options="-parameters" />
+      <module name="egov-mdms-service-test (1)" options="-parameters" />
+      <module name="egov-persister" options="-parameters" />
+      <module name="egov-workflow-v2" options="-parameters" />
+      <module name="estimates" options="-parameters" />
+      <module name="expense" options="-parameters" />
+      <module name="expense-calculator" options="-parameters" />
+      <module name="ifms-adapter" options="-parameters" />
+      <module name="measurement-book-service" options="-parameters" />
+      <module name="measurement-registry" options="-parameters" />
+      <module name="mukta-ifix-adapter" options="-parameters" />
+      <module name="muster-roll" options="-parameters" />
+      <module name="organisation" options="-parameters" />
+      <module name="program-service" options="-parameters" />
+      <module name="works-management-service" options="-parameters" />
+    </option>
+  </component>
+</project>

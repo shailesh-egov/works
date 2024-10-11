@@ -1,0 +1,47 @@
+@startuml
+title "State Flow"
+actor STATE_USER_1 as "User" order 0 #ddff41
+participant ORGANIZATION as "Organization" order 1 #51ad00
+participant INDIVIDUAL as "Individual" order 2 #51ad00
+participant VALIDATOR_SERVICE as "IDValidator" order 3 #FFad00
+participant HRMS as "HRMS" order 4 #51ad00
+participant ATTENDANCE as "Attendance" order 5 #51ad00
+participant BANK_ACCOUNT as "Bank Account" order 6 #51ad00
+participant PROGRAM as "Program" order 7 #51ad00
+participant RULE_ENGINE as "Rule Engine" order 8 #FFad00
+participant BILL_CALCULATOR as "Bill Calculator" order 9 #FFad00
+participant BILL as "Billing" order 10 #51ad00
+
+== Setup Rule for Program ==
+STATE_USER_1 -[#51ad00]> PROGRAM: Setup Program
+STATE_USER_1 -[#FFad00]> RULE_ENGINE: Setup Rule for program
+
+==Register Flow (Registering Teachers & Students)==
+STATE_USER_1 -[#51ad00]> ORGANIZATION: Register School
+STATE_USER_1 -[#51ad00]> INDIVIDUAL: Register Employees
+note right: Employees can be\nTeachers/Principal\nwith Organization & \nBank details
+INDIVIDUAL -[#FFad00]> VALIDATOR_SERVICE: Validate Aadhaar Number
+INDIVIDUAL -[#51ad00]> HRMS: Create System User
+STATE_USER_1 -[#51ad00]> INDIVIDUAL: Register Students
+note right: It includes \nAadhaar Number\nOrganization Details \nBank Account
+INDIVIDUAL -[#FFad00]> VALIDATOR_SERVICE: Validate Aadhaar Number
+STATE_USER_1 -[#51ad00]> BANK_ACCOUNT: Submit Bank Account Details
+
+STATE_USER_1 -[#51ad00]> ATTENDANCE: Create Attendance Register
+STATE_USER_1 -[#51ad00]> ATTENDANCE: Register Teachers in Attendance Register as staff
+STATE_USER_1 -[#51ad00]> ATTENDANCE: Register Students in Attendance Register as attendee
+STATE_USER_1 -[#51ad00]> ATTENDANCE: Add Students attendance
+
+== Bill Creation ==
+STATE_USER_1 -[#FFad00]> BILL_CALCULATOR: Student Register for Benefits
+BILL_CALCULATOR -[#51ad00]> BILL: Create Bill
+alt Auto validity check
+    BILL_CALCULATOR -[#FFad00]> RULE_ENGINE: Validate eligibility
+    BILL_CALCULATOR -[#FFad00]> VALIDATOR_SERVICE: Validate documents
+else
+     STATE_USER_1 -[#FFad00]> BILL_CALCULATOR: Validate Documents and approve the bill
+end
+
+== Payment Creation ==
+
+@enduml

@@ -1,0 +1,92 @@
+@startuml
+actor user as "Applicant" order 0 #ddff41
+participant BFF as "UBA Service\n(BFF)" order 1 #4Ff2AF
+participant INDIVIDUAL as "Individual" order 1 #4Ff2AF
+participant BANK_ACCOUNT as "Bank Account" order 2 #4Ff2AF
+participant APPLICATION as "Application" order 3 #4Ff2AF
+participant FileStore as "File Store" order 3 #4Ff2AF
+participant VERIFICATION as "Verification" order 4 #4Ff2AF
+participant DISBURSAL as "Disbursal" order 5 #4Ff2AF
+participant MDMS as "MDMS" order 7 #4Ff2AF
+participant ID_GEN as "ID Gen" order 7 #4Ff2AF
+participant WORKFLOW as "Workflow" order 8 #4Ff2AF
+participant PERSISTER as "Persister" order 9 #4Ff2AF
+queue KAFKA as "KAFKA" order 9 #4Ff2AF
+database DB as "DB" order 10 #4Ff2AF
+
+==Registration==
+user -> FileStore: Upload certificates
+activate FileStore #00ad00
+user <-- FileStore: Success response
+deactivate FileStore
+
+user -> BFF: Submit Application
+activate BFF #00ad00
+BFF -> INDIVIDUAL: Register
+activate INDIVIDUAL #00ad00
+BFF <-- INDIVIDUAL: Success response
+deactivate INDIVIDUAL
+
+'== Bank Account Creation ==
+BFF -> BANK_ACCOUNT: Submit Bank Account Details
+activate BANK_ACCOUNT #00ad00
+BFF <-- BANK_ACCOUNT: Success response
+deactivate BANK_ACCOUNT
+
+'== Application Submission ==
+
+BFF -> APPLICATION: Submit Application
+activate APPLICATION #00ad00
+APPLICATION -> KAFKA: Send Application on verification topic
+BFF <-- APPLICATION: Success response
+deactivate APPLICATION
+user <-- BFF: Success response
+deactivate BFF
+
+== Verification ==
+VERIFICATION -> KAFKA: Listen on verification topic
+activate VERIFICATION #00ad00
+VERIFICATION -> VERIFICATION: Approve Application
+VERIFICATION -> APPLICATION: Update Application
+activate APPLICATION #00ad00
+VERIFICATION -> KAFKA: Send Application on disbursal topic
+VERIFICATION <-- APPLICATION: Success response
+deactivate APPLICATION
+deactivate VERIFICATION
+
+== Disbursal ==
+
+DISBURSAL -> KAFKA: Listen on disbursal topic
+activate DISBURSAL #00ad00
+DISBURSAL -> DISBURSAL: Create Disbursal
+deactivate DISBURSAL
+
+== Get Payment Details ==
+
+user -> BFF: Get Payment details
+activate BFF #00ad00
+BFF -> DISBURSAL: Search disbursal details
+activate DISBURSAL #00ad00
+BFF <-- DISBURSAL: Disbursal details
+deactivate DISBURSAL
+
+BFF -> APPLICATION: Search application details
+activate APPLICATION #00ad00
+BFF <-- APPLICATION: Application details
+deactivate APPLICATION
+
+BFF -> INDIVIDUAL: Search student details
+activate INDIVIDUAL #00ad00
+BFF <-- INDIVIDUAL: Student details
+deactivate INDIVIDUAL
+
+BFF -> BANK_ACCOUNT: Search Bank account details
+activate BANK_ACCOUNT #00ad00
+BFF <-- BANK_ACCOUNT: Bank account details
+deactivate BANK_ACCOUNT
+BFF -> BFF: Create Payment CSV
+user <-- BFF: Payment Details
+deactivate BFF
+
+== End ==
+@enduml

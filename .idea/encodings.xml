@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/../DIGIT-Works/backend/attendance/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../DIGIT-Works/backend/bankaccounts/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../DIGIT-Works/backend/contracts/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../DIGIT-Works/backend/estimates/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../DIGIT-Works/backend/expense-calculator/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../DIGIT-Works/backend/expense/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../DIGIT-Works/backend/measurement-registry/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../DIGIT-Works/backend/measurement-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../DIGIT-Works/backend/muster-roll/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../DIGIT-Works/backend/organisation/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../DIGIT-Works/backend/wms/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../DIGIT-Works/reference-adapters/ifms-adapter/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../DIGIT-Works/reference-adapters/mukta-ifix-adapter/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../Digit-Core/core-services/MDMS-v2/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../Digit-Core/core-services/egov-idgen/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../Digit-Core/core-services/egov-mdms-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../Digit-Core/core-services/egov-persister/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../Digit-Core/core-services/egov-workflow-v2/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../iFix-Dev/domain-services/digit-exchange/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../iFix-Dev/domain-services/program-service/src/main/java" charset="UTF-8" />
+  </component>
+</project>

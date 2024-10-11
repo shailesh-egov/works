@@ -1,0 +1,122 @@
+// This is not implemented
+Table prgs_program_details {
+  id varchar(64) [pk]
+  tenantId varchar(64) [not null]
+  code varchar(64) [not null]
+  name varchar(64) [not null]
+  description varchar(256)
+  additionalDetails jsonb
+  parenetId varchar(64)
+  isActive boolean
+  createdtime bigint
+  createdby varchar(256)
+  lastmodifiedtime bigint
+  lastmodifiedby varchar(256)
+}
+
+Table prgs_sanction_details {
+  id varchar(64) [pk]
+  tenantId varchar(64) [not null]
+  programId varchar(64) [not null]
+  sanctionRefrId varchar(64) [not null]
+  sanctionedAmount double
+  allottedAmount double //go up only
+  availableAmount double //go up or down
+  financialYear varchar(64)
+  additionalDetails jsonb
+  createdtime bigint
+  createdby varchar(256)
+  lastmodifiedtime bigint
+  lastmodifiedby varchar(256)
+}
+
+Table prgs_allocation_details {
+  id varchar (64)
+  sanctionId varchar (64)
+  amount double
+  transactionType varchar (64) //allotted or withdrawal
+  allocationDate bigint
+  additionalDetails jsonb
+  createdtime bigint
+  createdby varchar(256)
+}
+
+//-- End of VA tables
+
+Table prgs_transaction_details {
+  id varchar (256) [pk]
+  tenantId varchar (64) [not null]
+  sanctionId varchar (256)
+  disbuseId varchar (256)
+  transactionAmount double
+  transactionDate bigint
+  transactionType varchar (256)//DEBIT or REVERSAL
+  additionalDetails jsonb
+  createdtime bigint
+  createdby varchar(256)
+  lastmodifiedtime bigint
+  lastmodifiedby varchar(256)
+}
+
+// Ref: jit_transaction_details.paymentInstId > jit_payment_inst_details.id
+
+Table prgs_request_header_details {
+  id varchar(256) [pk]
+  requestId varchar(256)
+  senderId varchar(256)
+  receiverId varchar(256)
+  action varchar(256)
+  additionalDetails jsonb
+  createdtime bigint
+}
+
+Table prgs_disburse_request_details {
+  id varchar(256) [pk]
+  requestId varchar(256) [not null]
+  transactionId varchar(256) [not null]
+  additionalDetails jsonb
+  createdtime bigint
+  createdby varchar(256)
+  lastmodifiedtime bigint
+  lastmodifiedby varchar(256)
+}
+
+Table prgs_disburse_disbursements_details {
+  id varchar(256) [pk]
+  disbuseId varchar(256)
+  referenceId varchar(256)
+  payerFa varchar(256)
+  payeeFa varchar(256)
+  amount double
+  status varchar(10)
+  statusReasonCode varchar(50)
+  statusReasonMessage varchar(999)
+  scheduled_timestamp bigint
+  payerName varchar(256)
+  payeeName varchar(256)
+  note varchar(99)
+  purpose varchar(99)
+  instruction varchar(999)
+  currencyCode varchar(10)
+  locale varchar(10)
+  additionalDetails jsonb
+  createdtime bigint
+  createdby varchar(256)
+  lastmodifiedtime bigint
+  lastmodifiedby varchar(256)
+}
+
+
+
+
+Ref: "prgs_disburse_request_details"."id" < "prgs_disburse_disbursements_details"."disbuseId"
+
+Ref: "prgs_sanction_details"."id" < "prgs_allocation_details"."sanctionId"
+
+Ref: "prgs_program_details"."id" < "prgs_sanction_details"."programId"
+
+Ref: "prgs_disburse_request_details"."requestId" < "prgs_request_header_details"."id"
+
+Ref: "prgs_sanction_details"."id" < "prgs_transaction_details"."sanctionId"
+
+Ref: "prgs_disburse_request_details"."id" < "prgs_transaction_details"."disbuseId"

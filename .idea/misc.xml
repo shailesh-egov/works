@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
+  <component name="MavenProjectsManager">
+    <option name="originalFiles">
+      <list>
+        <option value="$PROJECT_DIR$/../DIGIT-Works/backend/attendance/pom.xml" />
+        <option value="$PROJECT_DIR$/../DIGIT-Works/backend/bankaccounts/pom.xml" />
+        <option value="$PROJECT_DIR$/../DIGIT-Works/backend/organisation/pom.xml" />
+        <option value="$PROJECT_DIR$/../iFix-Dev/domain-services/digit-exchange/pom.xml" />
+        <option value="$PROJECT_DIR$/../iFix-Dev/domain-services/program-service/pom.xml" />
+        <option value="$PROJECT_DIR$/../DIGIT-Works/backend/estimates/pom.xml" />
+        <option value="$PROJECT_DIR$/../DIGIT-Works/backend/expense/pom.xml" />
+        <option value="$PROJECT_DIR$/../DIGIT-Works/backend/expense-calculator/pom.xml" />
+        <option value="$PROJECT_DIR$/../DIGIT-Works/backend/measurement-registry/pom.xml" />
+        <option value="$PROJECT_DIR$/../DIGIT-Works/backend/measurement-service/pom.xml" />
+        <option value="$PROJECT_DIR$/../DIGIT-Works/backend/wms/pom.xml" />
+        <option value="$PROJECT_DIR$/../DIGIT-Works/backend/contracts/pom.xml" />
+        <option value="$PROJECT_DIR$/../DIGIT-Works/backend/muster-roll/pom.xml" />
+        <option value="$PROJECT_DIR$/../Digit-Core/core-services/egov-persister/pom.xml" />
+        <option value="$PROJECT_DIR$/../Digit-Core/core-services/egov-idgen/pom.xml" />
+        <option value="$PROJECT_DIR$/../Digit-Core/core-services/egov-mdms-service/pom.xml" />
+        <option value="$PROJECT_DIR$/../Digit-Core/core-services/egov-workflow-v2/pom.xml" />
+        <option value="$PROJECT_DIR$/../Digit-Core/core-services/MDMS-v2/pom.xml" />
+        <option value="$PROJECT_DIR$/../DIGIT-Works/reference-adapters/ifms-adapter/pom.xml" />
+        <option value="$PROJECT_DIR$/../DIGIT-OSS/business-services/billing-service/pom.xml" />
+        <option value="$PROJECT_DIR$/../DIGIT-OSS/business-services/collection-services/pom.xml" />
+        <option value="$PROJECT_DIR$/../DIGIT-Works/reference-adapters/mukta-ifix-adapter/pom.xml" />
+      </list>
+    </option>
+    <option name="ignoredFiles">
+      <set>
+        <option value="$PROJECT_DIR$/../DIGIT-OSS/business-services/billing-service/pom.xml" />
+        <option value="$PROJECT_DIR$/../DIGIT-OSS/business-services/collection-services/pom.xml" />
+      </set>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_17" default="true" project-jdk-name="17" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/out" />
+  </component>
+</project>

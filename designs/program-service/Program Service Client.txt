@@ -1,0 +1,91 @@
+
+Table payment_inst_details as jit_pi_details {
+  id varchar (256) [pk]
+  tenantId varchar (64) [not null]
+  piNumber varchar (256)
+  parentPiNumber varchar (256)
+  muktaReferenceId varchar (256)
+  amount double
+  status varchar
+  piApprovedId varchar
+  piApprovalDate varchar
+  piErrorResp varchar (256)
+  additionalDetails jsonb
+  createdtime bigint
+  createdby varchar(256)
+  lastmodifiedtime bigint
+  lastmodifiedby varchar(256)
+}
+
+Table payment_advice_details {
+  id varchar [pk]
+  tenantId varchar [ not null]
+  muktaReferenceId varchar(256)
+  piId varchar(256) //refers to id field in payment_inst_details table
+  paBillRefNumber varchar(256)
+  paFinYear varchar(64)
+  paAdviceId varchar(256)
+  paAdviceDate varchar(256)
+  paTokenNumber varchar(64)
+  paTokenDate varchar(64)
+  paErrorMsg varchar(256)
+  additionalDetails jsonb
+  createdtime bigint
+  createdby varchar(256)
+  lastmodifiedtime bigint
+  lastmodifiedby varchar(256)
+}
+
+Table beneficiary_details{
+  id varchar (256) [pk]
+  tenantId varchar (64) [ not null]
+  muktaReferenceId varchar (256)
+  piId varchar (256)
+  beneficiaryId varchar (256)
+  beneficiaryType varchar (256)
+  bankAccountId varchar (256)
+  beneficiaryNumber varchar (256)
+  amount double
+  voucherNumber varchar (256)
+  voucherDate timestamp
+  utrNo varchar (256)
+  utrDate varchar (64)
+  endToEndId varchar (256)
+  challanNumber varchar (256)
+  challanDate varchar (64)
+  paymentStatus varchar (64)
+  paymentStatusMessage varchar (256)
+  additionalDetails jsonb
+  createdtime bigint
+  createdby varchar(256)
+  lastmodifiedtime bigint
+  lastmodifiedby varchar(256)
+}
+Table beneficiary_lineitems {
+  id varchar (256) [pk]
+  beneficiaryId varchar (256)
+  lineItemId varchar (256)
+  createdtime bigint
+  createdby varchar(256)
+  lastmodifiedtime bigint
+  lastmodifiedby varchar(256)
+}
+Table pi_status_logs {
+  id varchar (256) [pk]
+  piId varchar (256) [not null]
+  serviceId varchar(64) [ not null]
+  status varchar (256)
+  additionalDetails jsonb
+  createdtime bigint
+  createdby varchar(256)
+  lastmodifiedtime bigint
+  lastmodifiedby varchar(256)
+}
+
+
+Ref: beneficiary_lineitems.beneficiaryId > beneficiary_details.id
+Ref: payment_advice_details.piId > payment_inst_details.id
+//Ref: payment_details.pi_id > payment_inst_details.id
+Ref: beneficiary_details.piId > payment_inst_details.id
+
+Ref: "payment_inst_details"."id" < "pi_status_logs"."piId"
