@@ -1,0 +1,10 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+actor user as "Citizen" order 1
+participant lbDept as "Existing \n System" order 1 #DFd9Df
+
+participant ParticipantRegistry as "Participant Registry &\n Data catalog" order 3 #DFd9Df
+
+==Register Organization as Participant==
+
+@enduml

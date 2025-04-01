@@ -7,31 +7,23 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="measurement-book-service" />
-        <module name="ifms-adapter" />
-        <module name="egov-persister" />
-        <module name="measurement-registry" />
-        <module name="organisation" />
-        <module name="egov-mdms-service-test (1)" />
-        <module name="works-management-service" />
-        <module name="digit-exchange" />
-        <module name="expense" />
-        <module name="contracts" />
-        <module name="bankaccounts" />
-        <module name="mukta-ifix-adapter" />
-        <module name="muster-roll" />
-        <module name="egov-workflow-v2" />
-        <module name="expense-calculator" />
-        <module name="egov-idgen" />
+        <module name="billing-service" />
+        <module name="collection-services" />
         <module name="egov-mdms-service-test" />
-        <module name="attendance" />
-        <module name="program-service" />
-        <module name="estimates" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="billing-service" target="1.8" />
-      <module name="collection-services" target="1.8" />
+      <module name="attendance" target="17" />
+      <module name="bankaccounts" target="17" />
+      <module name="contracts" target="17" />
+      <module name="digit-exchange" target="17" />
+      <module name="estimates" target="17" />
+      <module name="expense" target="17" />
+      <module name="expense-calculator" target="17" />
+      <module name="ifms-adapter" target="17" />
+      <module name="muster-roll" target="17" />
+      <module name="program-service" target="17" />
+      <module name="works-management-service" target="17" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
@@ -39,14 +31,19 @@
       <module name="attendance" options="-parameters" />
       <module name="bankaccounts" options="-parameters" />
       <module name="billing-service" options="-parameters" />
+      <module name="boundary-service" options="-parameters" />
       <module name="collection-services" options="-parameters" />
       <module name="contracts" options="-parameters" />
       <module name="digit-exchange" options="-parameters" />
+      <module name="egov-enc-service" options="-parameters" />
       <module name="egov-idgen" options="-parameters" />
+      <module name="egov-indexer" options="-parameters" />
       <module name="egov-mdms-service-test" options="-parameters" />
       <module name="egov-mdms-service-test (1)" options="-parameters" />
+      <module name="egov-mdms-service-test (2)" options="-parameters" />
       <module name="egov-persister" options="-parameters" />
       <module name="egov-workflow-v2" options="-parameters" />
+      <module name="enc-client" options="-parameters" />
       <module name="estimates" options="-parameters" />
       <module name="expense" options="-parameters" />
       <module name="expense-calculator" options="-parameters" />

@@ -1,0 +1,8 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+actor SDIP_ADMIN as "SDIP\nAdmin" order 1
+participant PR as "Participant\n Registry" order 2
+
+
+@enduml

@@ -1,0 +1,75 @@
+@startuml
+'title: Allocation Create Flow with Sanction Validation and Amount Update
+
+actor User as User order 0
+participant HUDD_PROGRAM as HUDD_PROGRAM order 1
+participant HUDD_DX as HUDD_DX order 2
+participant FINANCE_DX as FINANCE_DX order 3
+participant FINANCE_PROGRAM as FINANCE_PROGRAM order 4
+participant KAFKA as KAFKA order 5
+database DB as DB order 6
+
+activate User
+User -> HUDD_PROGRAM: /allocation/_create
+activate HUDD_PROGRAM
+HUDD_PROGRAM -> HUDD_PROGRAM: Validate allocation request fields
+
+note right
+Validate:
+- Allocation fields
+- Linked sanction ID
+- Mandatory headers
+end note
+
+HUDD_PROGRAM -> DB: Search sanction by ID
+alt if sanction not found
+User <- HUDD_PROGRAM: Invalid Request - Sanction not found
+deactivate HUDD_PROGRAM
+deactivate User
+end
+
+HUDD_PROGRAM -> KAFKA: Push allocation create request to kafka
+User <-- HUDD_PROGRAM: Return success response
+deactivate HUDD_PROGRAM
+deactivate User
+
+HUDD_PROGRAM <- KAFKA: Listen allocation topic
+activate HUDD_PROGRAM
+HUDD_PROGRAM -> HUDD_PROGRAM: Enrich allocation (audit, UUID)
+HUDD_PROGRAM -> DB: Save allocation locally
+HUDD_PROGRAM -> HUDD_PROGRAM: Create request for DX
+HUDD_PROGRAM -> HUDD_DX: /allocation
+activate HUDD_DX
+HUDD_PROGRAM <-- HUDD_DX: Return success response
+deactivate HUDD_PROGRAM
+
+HUDD_DX -> FINANCE_DX: /allocation
+activate FINANCE_DX
+HUDD_DX <-- FINANCE_DX: Return success response
+deactivate HUDD_DX
+
+FINANCE_DX -> FINANCE_PROGRAM: /allocation/_create
+activate FINANCE_PROGRAM
+FINANCE_PROGRAM -> FINANCE_PROGRAM: Validate and enrich allocation
+FINANCE_PROGRAM -> DB: Save allocation record
+FINANCE_PROGRAM -> DB: Update linked sanction’s allocated amount
+note right: Add allocation amount to sanction's allocated value
+FINANCE_PROGRAM -> FINANCE_DX: /on-allocation
+FINANCE_PROGRAM <-- FINANCE_DX: Return success response
+deactivate FINANCE_PROGRAM
+
+FINANCE_DX -> HUDD_DX: /on-allocation
+activate HUDD_DX
+FINANCE_DX <-- HUDD_DX: Return success response
+deactivate FINANCE_DX
+
+HUDD_DX -> HUDD_PROGRAM: /on-allocation/_create
+activate HUDD_PROGRAM
+HUDD_PROGRAM -> DB: Update allocation status
+HUDD_PROGRAM -> DB: Update linked sanction’s allocated amount
+note right: Finalize amount in local record
+HUDD_PROGRAM -> HUDD_DX: Return success response
+deactivate HUDD_PROGRAM
+deactivate HUDD_DX
+
+@enduml

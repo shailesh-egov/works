@@ -1,0 +1,43 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+actor user as "Citizen" order 1
+box "Labour Department" #Dfddaa
+participant lbDept as "Existing \n System" order 1 #DFd9Df
+participant lbAdapter as "Adapter" order 2 #DFd9Df
+endbox
+box "SDIP (Centrally managed system)" #FdDDaa
+    participant ParticipantRegistry as "Participant Registry &\n Data catalog" order 3 #DFd9Df
+'    participant SharedDataRegistry as "Shared Data \nRegistry" order 4 #DFd9Df
+    participant AuthenticationServer as "Authentication,\nAuthorization &\n Public Key Manager \n(Keycloak)" order 5 #DFd9Df
+    participant Audit as "Audit Log" order 5 #DFd9Df
+    participant CertificateServer as "Credential Server and \nCertificate Issuance Platform" order 6 #DFd9Df
+    participant IndividualRegistry as "Individual \nRegistry \n(ID Mapper)" order 7 #DFd9Df
+endbox
+box "Home Department" #Dfddaa
+    participant hdAdapter as "Adapter" order 9 #DFd9Df
+    participant hdDept as "Existing \n System" order 10 #DFd9Df
+endbox
+actor hdAdmin as "Home Dept \nAdmin" order 11
+
+user -> lbDept: create
+note over user, lbDept: Submitted application \n with required details
+lbDept --> user: Submit application
+lbAdapter -> lbDept: search applications
+note right: Fetch created application details
+'lbDept -> lbAdapter: Return application details
+'==== Case 1 (If certificate is available at source system)==
+hdAdapter -> CertificateServer: push certificate to a citizen
+lbAdapter -> CertificateServer: request for certificate
+alt if certificate not found
+    CertificateServer -> ParticipantRegistry: fetch related Department details
+    CertificateServer -> hdAdapter: request for certificate
+    hdAdapter -> hdDept: request for certificate
+    CertificateServer -> CertificateServer: Cache certificate
+end
+CertificateServer -> lbAdapter: Return certificate
+lbAdapter -> lbDept: Approve application
+'
+'CertificateServer -> lbAdapter: Return certificate
+'lbAdapter -> lbDept: Approve application
+@enduml

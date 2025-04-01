@@ -1,0 +1,20 @@
+@startuml
+title Household Data sync
+participant TRANSFORM_SERVICE as "Transform Service" order 1 #0ad2AF
+database DB as "DB" order 3 #4Ff2AF
+database ES as "ES" order 4 #4Ff2AF
+queue KAFKA as "KAFKA" order 5 #4Ff2AF
+
+
+activate TRANSFORM_SERVICE #0add91
+note over TRANSFORM_SERVICE: Called start function of Implemented class \nbased on serviceId, \n It will send date range from and to date
+
+loop while getting new requests
+    TRANSFORM_SERVICE -> ES : Get Paginated Household, \nHousehold member, \nIndividual details from index
+    TRANSFORM_SERVICE -> TRANSFORM_SERVICE: Construct Household object \nwith required details
+    TRANSFORM_SERVICE -> KAFKA: Push processed record to <b>household_transform</b> topic
+end
+TRANSFORM_SERVICE -> DB: Update the syc status to completed
+
+deactivate TRANSFORM_SERVICE
+@enduml

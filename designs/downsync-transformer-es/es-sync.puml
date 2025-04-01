@@ -1,0 +1,37 @@
+@startuml
+actor user as "User/\nCronjob" order 0 #ddff41
+participant TRANSFORM_SERVICE as "Transform Service" order 1 #0ad2AF
+queue KAFKA as "KAFKA" order 2 #4Ff2AF
+database DB as "DB" order 3 #4Ff2AF
+database ES as "ES" order 4 #4Ff2AF
+participant INDEXER as "Indexer" order 5 #4Ff2AF
+
+user -> TRANSFORM_SERVICE: call /_transform?serviceId=HOUSEHOLD \napi to start Syncing Data
+activate user #Fafd30
+activate TRANSFORM_SERVICE #0add91
+TRANSFORM_SERVICE -> DB: get last executed transform from DB
+alt If there are records available
+    TRANSFORM_SERVICE -> TRANSFORM_SERVICE: Take the last executed date as\n <b>FROM</b> date from DB
+end
+
+note over TRANSFORM_SERVICE: If no record found in DB, start from beginning
+TRANSFORM_SERVICE -> DB: Create entry with details like \nserviceId, \nlast executed \nwith initiated status
+TRANSFORM_SERVICE -> TRANSFORM_SERVICE: Based on ID select the \nImplementation class and \nstart the sync operation
+alt if: There are any errors
+    TRANSFORM_SERVICE -> DB: Update the syc status to failed
+end
+TRANSFORM_SERVICE -> KAFKA: Push the processed record \nto the topic based on serviceId
+TRANSFORM_SERVICE -> DB: Update the syc status to completed
+
+user <-- TRANSFORM_SERVICE: Success response
+deactivate TRANSFORM_SERVICE
+deactivate user
+group async
+KAFKA <- INDEXER: Listen <b>service_topic</b> topic \nand Process
+activate INDEXER
+INDEXER -> ES: insert/update the record ES
+deactivate INDEXER
+end
+
+
+@enduml

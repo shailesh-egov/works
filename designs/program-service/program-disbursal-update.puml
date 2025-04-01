@@ -1,0 +1,36 @@
+@startuml
+'title: Disbursal Update Flow with Amount Deduction and Rollback Handling
+
+actor User as User order 0
+participant HUDD_PROGRAM as HUDD_PROGRAM order 1
+participant HUDD_DX as HUDD_DX order 2
+participant FINANCE_DX as FINANCE_DX order 3
+participant FINANCE_PROGRAM as FINANCE_PROGRAM order 4
+participant KAFKA as KAFKA order 5
+database DB as DB order 6
+
+activate User
+
+FINANCE_PROGRAM -> FINANCE_DX: /on-disburse
+FINANCE_PROGRAM <-- FINANCE_DX: Return success response
+deactivate FINANCE_PROGRAM
+
+FINANCE_DX -> HUDD_DX: /on-disburse
+activate HUDD_DX
+FINANCE_DX <-- HUDD_DX: Return success response
+deactivate FINANCE_DX
+
+HUDD_DX -> HUDD_PROGRAM: /on-disburse/_update
+activate HUDD_PROGRAM
+alt if on-disburse status = SUCCESS
+HUDD_PROGRAM -> DB: Update disburse status to SUCCESS
+else if on-disburse status = FAILED
+HUDD_PROGRAM -> DB: Mark disburse as FAILED
+HUDD_PROGRAM -> DB: Rollback reduced amount in sanction
+note right: Restore available amount
+end
+HUDD_PROGRAM -> HUDD_DX: Return final response
+deactivate HUDD_PROGRAM
+deactivate HUDD_DX
+
+@enduml

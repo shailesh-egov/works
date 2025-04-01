@@ -1,0 +1,18 @@
+@startuml
+title Approach 1 - Overall Flow
+actor DxAdmin as DxAdmin order 1
+participant DxServer as "Dx Server" order 2 #DFDADf
+participant IdentityServer as "Identity \nServer" order 3 #DFDADf
+participant ProviderRegistry as "Provider \nRegistry" order 4 #DFDADf
+participant RequestManager as "Request \nManager" order 5 #DFDADf
+participant Dept1 as "Line \nDepartment 1" order 6 #DFDADf
+participant DeptN as "Line \nDepartment \n ...." order 6 #DFDADf
+
+DxAdmin -> DxServer: Install
+DxServer -> IdentityServer: Register server
+DxServer -> ProviderRegistry: Register server
+DxAdmin -> DxServer: Expose services
+DxServer -> ProviderRegistry: Register services
+
+
+@enduml

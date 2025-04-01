@@ -1,0 +1,28 @@
+@startuml
+title SDIP Installation and Setup Department
+
+actor Dept1Admin as "DEPT 1 \nAdmin" order 1
+participant lbDept as "LD \n Services" order 1 #DFd9Df
+participant lbAdapter as "LD \nAdapter" order 2 #DFd9Df
+
+participant ParticipantRegistry as "SDIP\nParticipant Registry &\n Data catalog" order 3 #DFd9Df
+'participant DataCatalogs as "Data \n Catalogs" order 4 #DFd9Df
+participant AuthenticationServer as "SDIP\nAuthentication,\nAuthorization &\n Public Key Manager \n(Keycloak)" order 5 #DFd9Df
+participant Audit as "SDIP\nAudit Log" order 5 #DFd9Df
+participant CertificateServer as "SDIP\nCredential Server and \nCertificate Issuance Platform" order 6 #DFd9Df
+participant IndividualRegistry as "SDIP\nIndividual \nRegistry \n(ID Mapper)" order 7 #DFd9Df
+participant Analytics as "SDIP\nAnalytics Server" order 8 #DFd9Df
+
+Dept1Admin -> lbAdapter: Install server and \n generate keypair
+Dept1Admin -> lbAdapter: register department
+lbAdapter -> ParticipantRegistry: department/create
+note right: Register Department details in registry
+ParticipantRegistry -> AuthenticationServer: Register department in keycloak
+'ParticipantRegistry -> Audit: Log events
+Dept1Admin -> AuthenticationServer: Request for auth token
+Dept1Admin <-- AuthenticationServer: Return auth token
+Dept1Admin -> ParticipantRegistry: config/create
+note over ParticipantRegistry: Enter master details like program details, \n list of exposed API's and configurations.
+'ParticipantRegistry -> Audit: Log events
+
+@enduml

@@ -1,0 +1,71 @@
+@startuml
+'title: Sanction Create Flow with Program Validation using DIGIT Exchange
+
+actor User as User order 0
+participant HUDD_PROGRAM as HUDD_PROGRAM order 1
+participant HUDD_DX as HUDD_DX order 2
+participant FINANCE_DX as FINANCE_DX order 3
+participant FINANCE_PROGRAM as FINANCE_PROGRAM order 4
+participant KAFKA as KAFKA order 5
+database DB as DB order 6
+
+activate User
+User -> HUDD_PROGRAM: /sanction/_create
+activate HUDD_PROGRAM
+HUDD_PROGRAM -> HUDD_PROGRAM: Validate sanction request fields
+
+note right
+Validate:
+- Sanction fields
+- Mandatory headers
+- Linked program ID
+end note
+
+HUDD_PROGRAM -> DB: Search program by ID
+alt if program not found
+User <- HUDD_PROGRAM: Invalid Request - Program not found
+deactivate HUDD_PROGRAM
+deactivate User
+end
+
+HUDD_PROGRAM -> KAFKA: Push sanction create request to kafka
+User <-- HUDD_PROGRAM: Return success response
+deactivate HUDD_PROGRAM
+deactivate User
+
+HUDD_PROGRAM <- KAFKA: Listen sanction topic
+activate HUDD_PROGRAM
+HUDD_PROGRAM -> HUDD_PROGRAM: Enrich sanction (audit, UUID)
+HUDD_PROGRAM -> DB: Save sanction record locally
+HUDD_PROGRAM -> HUDD_PROGRAM: Create request for DX
+HUDD_PROGRAM -> HUDD_DX: /sanction
+activate HUDD_DX
+HUDD_PROGRAM <-- HUDD_DX: Return success response
+deactivate HUDD_PROGRAM
+
+HUDD_DX -> FINANCE_DX: /sanction
+activate FINANCE_DX
+HUDD_DX <-- FINANCE_DX: Return success response
+deactivate HUDD_DX
+
+FINANCE_DX -> FINANCE_PROGRAM: /sanction/_create
+activate FINANCE_PROGRAM
+FINANCE_PROGRAM -> FINANCE_PROGRAM: Validate and enrich sanction
+FINANCE_PROGRAM -> DB: Save sanction
+FINANCE_PROGRAM -> FINANCE_DX: /on-sanction
+FINANCE_PROGRAM <-- FINANCE_DX: Return success response
+deactivate FINANCE_PROGRAM
+
+FINANCE_DX -> HUDD_DX: /on-sanction
+activate HUDD_DX
+FINANCE_DX <-- HUDD_DX: Return success response
+deactivate FINANCE_DX
+
+HUDD_DX -> HUDD_PROGRAM: /on-sanction/_create
+activate HUDD_PROGRAM
+HUDD_PROGRAM -> DB: Update sanction status
+HUDD_PROGRAM -> HUDD_DX: Return success response
+deactivate HUDD_PROGRAM
+deactivate HUDD_DX
+
+@enduml

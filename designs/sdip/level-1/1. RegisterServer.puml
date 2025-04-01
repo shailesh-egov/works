@@ -1,0 +1,36 @@
+@startuml
+title Step 1: Register Server
+actor DxAdmin as "Dx1 \nAdmin" order 1
+box "Labour Department" #Dfddaa
+participant lbDept as "Adapter" order 1 #DFd9Df
+participant DxServer as "Dx Server" order 2 #DFd9Df
+endbox
+box "SDIP" #FFDDaa
+'participant IdentityServer as "Identity \nServer" order 3 #DFd9Df
+participant ProviderRegistry as "Provider \nRegistry" order 4 #DFd9Df
+participant PKI as "Public Key \nInfra" order 5 #DFd9Df
+participant Audit as "Audit Log" order 5 #DFd9Df
+endbox
+
+==Basic setup of dx server==
+DxAdmin -> DxServer: Install server and \ngenerate keypair
+DxServer -> ProviderRegistry: Register server
+DxServer <-- ProviderRegistry: Return server \nregistration response
+==Fetch and register services exposed by labour department==
+DxAdmin -> DxServer: Define services \nand Expose
+DxServer -> ProviderRegistry: Register services
+DxServer <-- ProviderRegistry: Return service \nregistration response
+==Register public key that helps for validation of data==
+DxAdmin -> DxServer: Register keypair
+activate DxServer #d1dad0
+DxServer -> PKI: request for register key
+activate PKI #d1dad0
+DxServer <- PKI: Get public key
+DxServer --> PKI: Return public key
+PKI -> PKI: Register key
+PKI -> Audit: Log key registration
+DxServer <-- PKI: Return success response
+deactivate PKI #d1dad0
+
+
+@enduml

@@ -1,0 +1,29 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+actor user as "User" order 0
+
+participant lbDept as "Adapter" order 1 #DFd9Df
+participant DxServer as "Dx Server" order 2 #DFd9Df
+participant ConsumerRegistry as "Consumer \nRegistry" order 4 #DFd9Df
+participant ProviderRegistry as "Provider \nRegistry" order 4 #DFd9Df
+participant SharedData as "Shared Data \nManager" order 4 #DFd9Df
+participant RequestManager as "Request \nManager" order 5 #DFd9Df
+
+==Request and Submit application==
+user -> SharedData: Request for form json
+user <-- SharedData: Form json
+
+user -> RequestManager: Submitted request
+RequestManager --> user:[async] Return success response
+
+RequestManager -> RequestManager: Process request
+RequestManager -> ProviderRegistry: Request for server details
+ProviderRegistry --> RequestManager: Return server details
+
+
+
+
+
+@enduml

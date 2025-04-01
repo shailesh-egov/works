@@ -1,0 +1,66 @@
+@startuml
+'title: Program Update Flow using DIGIT Exchange
+
+actor User as User order 0
+participant HUDD_PROGRAM as HUDD_PROGRAM order 1
+participant HUDD_DX as HUDD_DX order 2
+participant FINANCE_DX as FINANCE_DX order 3
+participant FINANCE_PROGRAM as FINANCE_PROGRAM order 4
+participant IDGEN as IDGEN order 5
+participant KAFKA as KAFKA order 6
+database DB as DB order 7
+
+activate User
+User -> HUDD_PROGRAM: /program/_update
+activate HUDD_PROGRAM
+HUDD_PROGRAM -> HUDD_PROGRAM: Validate update request
+note right: Validate input fields \nlike program ID, fields to update
+alt if request is not valid
+User <- HUDD_PROGRAM: Invalid Request
+deactivate HUDD_PROGRAM
+deactivate User
+end
+HUDD_PROGRAM -> KAFKA: Push update request to kafka
+User <-- HUDD_PROGRAM: Return success response
+deactivate HUDD_PROGRAM
+deactivate User
+
+HUDD_PROGRAM <- KAFKA: Listen program update topic
+activate HUDD_PROGRAM
+HUDD_PROGRAM -> HUDD_PROGRAM: Enrich request (e.g. audit info)
+HUDD_PROGRAM -> DB: Update local program data
+HUDD_PROGRAM -> HUDD_PROGRAM: Create update request for Exchange
+HUDD_PROGRAM -> HUDD_DX: /program/_update
+activate HUDD_DX
+HUDD_PROGRAM <-- HUDD_DX: Return success response
+deactivate HUDD_PROGRAM
+
+HUDD_DX -> FINANCE_DX: /program/_update
+activate FINANCE_DX
+HUDD_DX <-- FINANCE_DX: Return success response
+deactivate HUDD_DX
+
+FINANCE_DX -> FINANCE_PROGRAM: /program/_update
+activate FINANCE_PROGRAM
+FINANCE_PROGRAM -> FINANCE_PROGRAM: Validate and enrich request
+note right: Enrich audit, check program existence
+FINANCE_PROGRAM -> DB: Update master program record
+FINANCE_PROGRAM -> FINANCE_PROGRAM: Create on-update response
+FINANCE_PROGRAM -> FINANCE_DX: /on-program/_update
+FINANCE_PROGRAM <-- FINANCE_DX: Return success response
+deactivate FINANCE_PROGRAM
+
+FINANCE_DX -> HUDD_DX: /on-program/_update
+activate HUDD_DX
+FINANCE_DX <-- HUDD_DX: Return success response
+deactivate FINANCE_DX
+
+HUDD_DX -> HUDD_PROGRAM: /on-program/_update
+activate HUDD_PROGRAM
+HUDD_PROGRAM -> HUDD_PROGRAM: Finalize update state
+HUDD_PROGRAM -> DB: Update program with response details
+HUDD_PROGRAM -> HUDD_DX: Return success response
+deactivate HUDD_PROGRAM
+deactivate HUDD_DX
+
+@enduml

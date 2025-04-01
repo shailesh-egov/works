@@ -1,0 +1,29 @@
+@startuml
+title Sync programs to central server
+actor user as "Scheduler/User" order 0
+box SDIP #ddddad
+    participant SharedDataManager as "Shared Data Manager" order 1
+    participant RequestManager as "Request Manager" order 2
+    participant ProviderRegistry as "Provider Registry" order 3
+end box
+'box "Department 1" #ddddfa
+'    participant DxServer1 as "Dx Server" order 4
+''    participant AdapterDept1 as "Adapter" order 5
+'end box
+box "Departments ..." #ddd0ad
+    participant DxServerN as "Dx Server" order 8
+'    participant AdapterDeptN as "Adapter" order 9
+end box
+
+user -> SharedDataManager: Request to sync the programs
+SharedDataManager -> ProviderRegistry: Request for available registered departments
+SharedDataManager <-- ProviderRegistry: Return list or registered departments \nwith domain and other details
+
+loop for each department:
+    SharedDataManager -> DxServerN: Request for available programs
+    DxServerN --> SharedDataManager: Return available programs under this department
+    note over SharedDataManager: Program details
+    SharedDataManager -> SharedDataManager: Store available program details
+end
+
+@enduml

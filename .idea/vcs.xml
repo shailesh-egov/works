@@ -2,9 +2,9 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../DIGIT-OSS" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../DIGIT-Works" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../Digit-Core" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../digit-works-bkp2" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../iFix-Dev" vcs="Git" />
   </component>
 </project>

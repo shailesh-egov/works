@@ -4,7 +4,7 @@
     <remote-repository>
       <option name="id" value="repo.egovernments.org" />
       <option name="name" value="eGov ERP Releases Repository" />
-      <option name="url" value="https://nexus-repo.digit.org/nexus/content/repositories/releases/" />
+      <option name="url" value="https://nexus-repo.egovernments.org/nexus/content/repositories/releases/" />
     </remote-repository>
     <remote-repository>
       <option name="id" value="central" />
@@ -27,12 +27,12 @@
       <option name="url" value="https://nexus-repo.egovernments.org/nexus/content/groups/public/" />
     </remote-repository>
     <remote-repository>
-      <option name="id" value="repo.egovernments.org.snapshots" />
-      <option name="name" value="eGov ERP Releases Repository" />
+      <option name="id" value="repo.digit.org.snapshots" />
+      <option name="name" value="eGov ERP SNAPSHOT Repository" />
       <option name="url" value="https://nexus-repo.digit.org/nexus/content/repositories/snapshots/" />
     </remote-repository>
     <remote-repository>
-      <option name="id" value="repo.egovernments.org" />
+      <option name="id" value="repo.egovernments.org.snapshots" />
       <option name="name" value="eGov ERP Releases Repository" />
       <option name="url" value="https://nexus-repo.digit.org/nexus/content/repositories/snapshots/" />
     </remote-repository>
@@ -47,36 +47,6 @@
       <option name="url" value="https://nexus-repo.digit.org/nexus/content/repositories/releases/" />
     </remote-repository>
     <remote-repository>
-      <option name="id" value="repo.digit.org.public" />
-      <option name="name" value="eGov Public Repository Group" />
-      <option name="url" value="https://nexus-repo.digit.org/nexus/content/groups/public/" />
-    </remote-repository>
-    <remote-repository>
-      <option name="id" value="repo.egovernments.org" />
-      <option name="name" value="eGov DIGIT Releases Repository" />
-      <option name="url" value="https://nexus-repo.digit.org/nexus/content/repositories/snapshots/" />
-    </remote-repository>
-    <remote-repository>
-      <option name="id" value="repo.egovernments.org" />
-      <option name="name" value="eGov ERP Releases Repository" />
-      <option name="url" value="https://nexus-repo.egovernments.org/nexus/content/repositories/releases/" />
-    </remote-repository>
-    <remote-repository>
-      <option name="id" value="repo.egovernments.org.snapshots" />
-      <option name="name" value="eGov ERP Snapshots Repository" />
-      <option name="url" value="https://nexus-repo.egovernments.org/nexus/content/repositories/snapshots/" />
-    </remote-repository>
-    <remote-repository>
-      <option name="id" value="repo.digit.org.snapshots" />
-      <option name="name" value="eGov ERP SNAPSHOT Repository" />
-      <option name="url" value="https://nexus-repo.digit.org/nexus/content/repositories/snapshots/" />
-    </remote-repository>
-    <remote-repository>
-      <option name="id" value="repo.egovernments.org.public" />
-      <option name="name" value="eGov Public Repository Group" />
-      <option name="url" value="https://nexus-repo.digit.org/nexus/content/groups/public/" />
-    </remote-repository>
-    <remote-repository>
       <option name="id" value="jboss.community" />
       <option name="name" value="JBoss Community repository" />
       <option name="url" value="https://repository.jboss.org/nexus/content/repositories/public/" />
@@ -85,6 +55,11 @@
       <option name="id" value="repo.digit.org" />
       <option name="name" value="eGov DIGIT Releases Repository" />
       <option name="url" value="https://nexus-repo.digit.org/nexus/content/repositories/snapshots/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="repo.digit.org.public" />
+      <option name="name" value="eGov Public Repository Group" />
+      <option name="url" value="https://nexus-repo.digit.org/nexus/content/groups/public/" />
     </remote-repository>
   </component>
 </project>

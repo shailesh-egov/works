@@ -1,0 +1,67 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+title "Approach 1: for User Application"
+'autonumber
+actor user as "Application \nVerifier" order 0
+box Central server #ddddad
+participant sharedDataManager as "Shared Data Manager" order 1
+participant RequestManager as "Request Manager" order 2
+end box
+box "Department 1" #ddddfa
+participant DxServer1 as "Dx Server" order 3
+participant AdapterDept1 as "Adapter" order 4
+end box
+
+box "Department 2" #ddd0ad
+participant DxServer2 as "Dx Server" order 5
+participant AdapterDept2 as "Adapter" order 6
+end box
+
+user -> sharedDataManager: Request for programs
+sharedDataManager --> user: Return programs
+
+user -> user: Selected program \nand applied for that
+===Apply for a program==
+user -> RequestManager: Submit request
+RequestManager --> user: Return success response
+
+== Push approach ==
+RequestManager -> DxServer1: Forward request to \nExchange Server
+DxServer1 --> RequestManager: Return success response
+
+== Pull approach ==
+DxServer1 ->RequestManager : Query for new request available
+DxServer1 <-- RequestManager: Return registered requests
+====
+
+DxServer1 -> AdapterDept1: Call API based on request header
+AdapterDept1 --> DxServer1: Return success response
+
+AdapterDept1 -> AdapterDept1: Process request
+note left: Department 1 needs some information \nfrom Department 2 to validate \nthe request
+AdapterDept1 -> DxServer1: Query for "Department 2"
+
+DxServer1 -> DxServer2: Forward query to "Department 2"
+DxServer2 -> AdapterDept2: Call API based on request header
+AdapterDept2 --> DxServer2: Return details according to request
+
+DxServer2 --> DxServer1: Return response with details
+DxServer1 --> AdapterDept1: Return response
+note over AdapterDept1: Validate the details and update the status of request.
+====
+
+===update the application status==
+==Approach 1: Push the updated application==
+AdapterDept1 -> DxServer1: Send updated request
+DxServer1 --> AdapterDept1: Return success response
+DxServer1 -> RequestManager: Send updated request
+RequestManager --> DxServer1: Return success response
+RequestManager -> RequestManager: Process updated request
+
+==Search application status==
+user -> RequestManager: Request application status
+RequestManager --> user: Return application status
+
+
+
+@enduml
