@@ -1,0 +1,246 @@
+{
+  "@context": [
+    "https://www.w3.org/2018/credentials/v1",
+    "https://sdip.punjab.gov.in/schemas/death-certificate/v1",
+    "https://w3id.org/security/suites/ed25519-2020/v1"
+  ],
+  "id": "https://sdip.punjab.gov.in/credentials/death-certificate/DC-2025-PB-HLT-892347156",
+  "type": [
+    "VerifiableCredential",
+    "DeathCertificate"
+  ],
+  "issuer": {
+    "id": "did:web:sdip.punjab.gov.in:departments:health",
+    "name": "Department of Health & Family Welfare, Government of Punjab",
+    "publicKey": "z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH",
+    "address": {
+      "streetAddress": "Sector 34-A",
+      "addressLocality": "Chandigarh",
+      "addressRegion": "Punjab",
+      "postalCode": "160022",
+      "addressCountry": "IN"
+    },
+    "contactPoint": {
+      "telephone": "+91-172-2921200",
+      "email": "health@punjab.gov.in"
+    }
+  },
+  "issuanceDate": "2025-07-21T14:45:00Z",
+  "expirationDate": null,
+  "credentialSubject": {
+    "id": "did:aadhaar:9876-5432-1098",
+    "deceasedPersonInfo": {
+      "name": "Balwinder Kaur Gill",
+      "fatherName": "Gurbachan Singh",
+      "motherName": "Surjit Kaur",
+      "spouseName": "Kuldeep Singh Gill",
+      "dateOfBirth": "1962-08-22",
+      "aadhaarNumber": "xxxx-xxxx-1098",
+      "gender": "Female",
+      "religion": "Sikh",
+      "caste": "General",
+      "occupation": "Homemaker",
+      "education": "Graduate"
+    },
+    "deathDetails": {
+      "dateOfDeath": "2025-07-18",
+      "timeOfDeath": "06:30",
+      "placeOfDeath": {
+        "type": "Hospital",
+        "institutionName": "Government Medical College Hospital",
+        "address": {
+          "streetAddress": "Sector 32",
+          "city": "Chandigarh",
+          "district": "Chandigarh",
+          "state": "Punjab",
+          "pinCode": "160030"
+        },
+        "ward": "ICU Ward 3",
+        "bedNumber": "ICU-15"
+      },
+      "causeOfDeath": {
+        "immediateCause": "Cardiac Arrest",
+        "antecedentCause": "Myocardial Infarction",
+        "underlyingCause": "Coronary Artery Disease",
+        "contributingFactors": ["Diabetes Mellitus Type 2", "Hypertension"],
+        "manner": "Natural",
+        "icdCode": "I21.9"
+      },
+      "medicalAttendance": {
+        "attendingPhysician": {
+          "name": "Dr. Amarjit Singh Bhatia",
+          "qualification": "MBBS, MD (Medicine)",
+          "registrationNumber": "PMC-15234",
+          "designation": "Senior Medical Officer"
+        },
+        "hospitalAdmissionDate": "2025-07-15",
+        "treatmentDuration": "3 days",
+        "wasAutopsyPerformed": false,
+        "autopsyReason": "Not Required - Natural Death"
+      }
+    },
+    "addressInfo": {
+      "permanentAddress": {
+        "houseNo": "456",
+        "streetAddress": "Model Town",
+        "village": "Ludhiana",
+        "tehsil": "Ludhiana",
+        "district": "Ludhiana",
+        "state": "Punjab",
+        "pinCode": "141002"
+      },
+      "addressAtTimeOfDeath": {
+        "houseNo": "456",
+        "streetAddress": "Model Town",
+        "village": "Ludhiana",
+        "tehsil": "Ludhiana",
+        "district": "Ludhiana",
+        "state": "Punjab",
+        "pinCode": "141002"
+      }
+    },
+    "familyDetails": {
+      "informant": {
+        "name": "Kuldeep Singh Gill",
+        "relationship": "Husband",
+        "aadhaarNumber": "xxxx-xxxx-2109",
+        "mobileNumber": "+91-98123-45678",
+        "address": "Same as deceased"
+      },
+      "nextOfKin": [
+        {
+          "name": "Simranjit Singh Gill",
+          "relationship": "Son",
+          "age": 28,
+          "occupation": "Software Engineer"
+        },
+        {
+          "name": "Harpreet Kaur Sharma",
+          "relationship": "Daughter",
+          "age": 25,
+          "occupation": "Teacher"
+        }
+      ]
+    },
+    "certificateDetails": {
+      "certificateNumber": "DC-2025-PB-HLT-892347156",
+      "registrationNumber": "REG-LDH-2025-7834",
+      "medicalCertificateNumber": "MED-GMCH-2025-9876",
+      "issuingOfficer": {
+        "name": "Dr. Rajinder Kaur Dhillon",
+        "designation": "Chief Medical Officer",
+        "officeName": "Civil Hospital Ludhiana",
+        "employeeId": "PB-HLT-2018-3456",
+        "registrationNumber": "PMC-12789"
+      },
+      "registrar": {
+        "name": "Jasbir Singh Brar",
+        "designation": "Registrar of Births & Deaths",
+        "officeName": "Municipal Corporation Ludhiana"
+      },
+      "verificationStatus": "Verified and Registered"
+    }
+  },
+  "evidence": [
+    {
+      "type": "MedicalDocumentation",
+      "documents": [
+        {
+          "type": "Medical Certificate of Cause of Death",
+          "number": "MED-GMCH-2025-9876",
+          "issuedBy": "Dr. Amarjit Singh Bhatia",
+          "verificationDate": "2025-07-18",
+          "status": "Verified"
+        },
+        {
+          "type": "Hospital Discharge Summary",
+          "hospitalName": "Government Medical College Hospital",
+          "admissionNumber": "ADM-2025-15678",
+          "verificationDate": "2025-07-19",
+          "status": "Verified"
+        },
+        {
+          "type": "Identity Verification",
+          "documents": ["Aadhaar Card", "Ration Card"],
+          "verifiedBy": "Kuldeep Singh Gill (Husband)",
+          "verificationDate": "2025-07-19",
+          "status": "Verified"
+        }
+      ]
+    }
+  ],
+  "credentialStatus": {
+    "id": "https://sdip.punjab.gov.in/credentials/status/DC-2025-PB-HLT-892347156",
+    "type": "RevocationList2020Status",
+    "revocationListIndex": 892347156,
+    "revocationListCredential": "https://sdip.punjab.gov.in/credentials/status/revocation-list-2025"
+  },
+  "termsOfUse": [
+    {
+      "type": "IssuerPolicy",
+      "policy": "This death certificate is a permanent record and can be used for all legal and administrative purposes including property transfer, insurance claims, and pension settlement.",
+      "prohibition": [
+        {
+          "assigner": "Department of Health, Punjab",
+          "assignee": "Certificate Holder",
+          "target": "This Credential",
+          "action": "unauthorized-reproduction"
+        }
+      ]
+    }
+  ],
+  "refreshService": {
+    "id": "https://sdip.punjab.gov.in/credentials/refresh/DC-2025-PB-HLT-892347156",
+    "type": "ManualRefreshService2018"
+  },
+  "proof": {
+    "type": "Ed25519Signature2020",
+    "created": "2025-07-21T14:45:00Z",
+    "verificationMethod": "did:web:sdip.punjab.gov.in:departments:health#key-1",
+    "proofPurpose": "assertionMethod",
+    "proofValue": "z4B8RNdFfa9SkqZMVPxAQpic7ndSayn1PzZs6ZjWp1CktyGesjuTReljaFI6sMZnJzGE12RZAQTrzGVLQDSdX4Yj7m"
+  },
+  "metadata": {
+    "sdipVersion": "1.0",
+    "schemaVersion": "1.3",
+    "processingTime": "24 hours",
+    "fees": {
+      "amount": 0,
+      "currency": "INR",
+      "receiptNumber": "FREE-SERVICE",
+      "note": "Death certificates are issued free of charge"
+    },
+    "linkedRecords": [
+      {
+        "department": "Municipal Corporation",
+        "recordType": "Birth Registration",
+        "recordId": "BIRTH-LDH-1962-8765"
+      },
+      {
+        "department": "Revenue Department",
+        "recordType": "Property Records",
+        "recordId": "PROP-LDH-456-MT"
+      },
+      {
+        "department": "Social Security",
+        "recordType": "Pension Records",
+        "recordId": "PENSION-PB-2020-9876"
+      }
+    ],
+    "auditTrail": {
+      "deathReported": "2025-07-18T08:00:00Z",
+      "medicalCertificateIssued": "2025-07-18T10:30:00Z",
+      "applicationReceived": "2025-07-19T09:00:00Z",
+      "documentsVerified": "2025-07-20T16:00:00Z",
+      "certificateIssued": "2025-07-21T14:45:00Z",
+      "registrationCompleted": "2025-07-21T15:00:00Z",
+      "verificationOfficer": "Dr. Rajinder Kaur Dhillon"
+    },
+    "legalImplications": {
+      "propertyRights": "Enables property transfer to legal heirs",
+      "insuranceClaims": "Required for life insurance settlement",
+      "pensionSettlement": "Enables family pension processing",
+      "bankAccounts": "Required for account closure/transfer"
+    }
+  }
+}

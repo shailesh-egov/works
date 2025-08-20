@@ -1,0 +1,137 @@
+@startuml
+title SDIP Catalog Management - APIs and Certificates Creation and Access Flow
+
+skinparam participant {
+    BackgroundColor<<dept1>> lightblue
+    BorderColor<<dept1>> blue
+    FontColor<<dept1>> darkblue
+    FontStyle<<dept1>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<dept2>> lightgreen
+    BorderColor<<dept2>> green
+    FontColor<<dept2>> darkgreen
+    FontStyle<<dept2>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<sdip>> lightyellow
+    BorderColor<<sdip>> orange
+    FontColor<<sdip>> darkorange
+    FontStyle<<sdip>> italic
+}
+
+skinparam actor {
+    BackgroundColor<<dept1>> lightblue
+    BorderColor<<dept1>> blue
+}
+
+skinparam actor {
+    BackgroundColor<<dept2>> lightgreen
+    BorderColor<<dept2>> green
+}
+
+skinparam note {
+    BackgroundColor wheat
+    BorderColor brown
+}
+
+actor Dept1Admin as "Department 1\nAdmin\n(API Provider)" <<dept1>>
+participant Dept1Services as "Department 1\nServices" <<dept1>>
+
+|||
+
+actor Dept2Admin as "Department 2\nAdmin\n(API Consumer)" <<dept2>>
+participant Dept2Services as "Department 2\nServices" <<dept2>>
+
+|||
+
+participant Keycloak as "Keycloak" <<sdip>>
+participant CatalogueService as "Catalogue\nService" <<sdip>>
+participant ParticipantRegistry as "Participant\nRegistry" <<sdip>>
+participant AuditService as "Audit\nService" <<sdip>>
+
+== Part 1: Catalog Creation ==
+
+activate Dept1Admin
+note over Dept1Admin, Keycloak: **Auth: Get token from Keycloak**
+
+Dept1Admin -> CatalogueService: Create API catalog
+activate CatalogueService
+note over CatalogueService, ParticipantRegistry: **Validate token, verify department, log creation**
+CatalogueService --> Dept1Admin: Catalog created successfully
+deactivate CatalogueService
+deactivate Dept1Admin
+
+note over Dept1Admin: Department 1 APIs now\navailable in catalog
+
+== Part 2: API Discovery ==
+
+activate Dept2Admin
+note over Dept2Admin, Keycloak: **Auth: Get token from Keycloak**
+
+Dept2Admin -> CatalogueService: Search available APIs
+activate CatalogueService
+note over CatalogueService, Keycloak: **Validate token**
+CatalogueService --> Dept2Admin: Available APIs list
+deactivate CatalogueService
+
+note over Dept2Admin: Reviews Department 1's APIs\nIdentifies needed APIs
+
+== Part 3: Access Request ==
+
+Dept2Admin -> CatalogueService: Request API access
+activate CatalogueService
+note over CatalogueService, AuditService: **Validate requester, log request**
+CatalogueService --> Dept2Admin: Request submitted
+CatalogueService -> Dept1Admin: Notify access request
+deactivate CatalogueService
+deactivate Dept2Admin
+
+note over Dept2Admin: Waiting for approval
+note over Dept1Admin: Reviews access request
+
+== Part 4: Access Approval ==
+
+activate Dept1Admin
+Dept1Admin -> CatalogueService: Review pending requests
+activate CatalogueService
+note over CatalogueService, Keycloak: **Validate token**
+CatalogueService --> Dept1Admin: Pending requests list
+
+alt Approve Request
+    Dept1Admin -> CatalogueService: Approve access
+    note over CatalogueService, AuditService: **Update policies, log approval**
+    CatalogueService --> Dept1Admin: Approval confirmed
+    CatalogueService -> Dept2Admin: Notify access granted
+    activate Dept2Admin
+    note over Dept2Admin: Access granted\nCan now use APIs
+    deactivate Dept2Admin
+else Reject Request
+    Dept1Admin -> CatalogueService: Reject access
+    note over CatalogueService, AuditService: **Log rejection**
+    CatalogueService --> Dept1Admin: Rejection confirmed
+    CatalogueService -> Dept2Admin: Notify access denied
+    activate Dept2Admin
+    note over Dept2Admin: Access denied\nCannot use APIs
+    deactivate Dept2Admin
+end
+deactivate CatalogueService
+deactivate Dept1Admin
+
+== Part 5: API Usage (if approved) ==
+
+activate Dept2Services
+note over Dept2Services, Keycloak: **Auth: Get service token with API scope**
+
+Dept2Services -> Dept1Services: Call Department 1's API
+activate Dept1Services
+note over Dept1Services, AuditService: **Validate token & permissions, log access**
+Dept1Services --> Dept2Services: API response
+deactivate Dept1Services
+deactivate Dept2Services
+
+note over Dept1Services, Dept2Services: **API exchange successful**\nDepartment 2 accessing\nDepartment 1's APIs
+
+@enduml

@@ -1,0 +1,48 @@
+Certificate Service
+The Certificate Service in the State Data Integration Platform (SDIP) is designed to enable secure, verifiable, and reusable data sharing across departments and authorized agencies. It allows government departments, local authorities, and verified institutions to issue digitally signed certificates that can be accessed by other departments, citizens, and service providers. By adopting a standardized certificate format based on the Verifiable Credentials (VC) standard, SDIP ensures data authenticity, security, and interoperability.
+By reducing manual paperwork, eliminating redundant verifications, and enabling offline use through signed PDFs, the Certificate Service enhances efficiency for both citizens and government departments. With automated issuance, expiry tracking, and reissuance workflows, the system ensures that citizens receive timely and hassle-free access to their verified credentials
+Key Components of the Certificate Service
+Department Registration & Key Generation
+To issue certificates, a department must first register as a participant in the SDIP Participant Registry. As part of the registration process, the department:
+Generates a Public/Private Key Pair
+The private key is used to sign issued certificates.
+The public key is published to the Participant Registry for verification purposes.
+Queries Internal Systems for Data
+The department retrieves relevant data from its internal database or integrated IT systems.
+Tools like Hasura GraphQL Engine can be used to easily query databases and publish data to the Certificate Service.
+Uses the Certificate Service API to Issue Certificates
+The department formats the data according to SDIP’s predefined certificate format.
+The Certificate Service signs the data and stores it in the Certificate Store.
+Other authorized participants can now retrieve and validate the certificate without requiring the citizen to manually submit documents.
+Issuance in Standardized Certificate Format (Verifiable Credential Format)
+Each certificate follows the Verifiable Credential (VC) format, ensuring tamper-proof verification and machine-readability. See Appendix 2 for an example of a marriage certificate in VC format.
+This Verifiable Credential (VC) format ensures that the certificate:
+Can be verified by any authorized participant without requiring direct API calls to the issuing department.
+Is cryptographically signed, preventing fraud and forgery.
+Supports offline verification, allowing use in PDF format with embedded signatures.
+Department & Agency Onboarding for Certificate Issuance
+The Certificate Service allows departments to onboard authorized agencies and institutions (such as religious organizations, local bodies, or NGOs) to issue certificates on their behalf. For example:
+Gurudwaras, Temples, and Churches can issue Marriage Certificates.
+Local Municipal Bodies can issue Residence Proofs.
+Panchayats can issue various certificates.
+These agencies will be onboarded via SDIP, and mobile/web interfaces will allow them to:
+Authenticate users before issuing a certificate.
+Enter & attest data.
+Issue and store the certificate securely in the Certificate Store.
+This distributed model allows certificates to be issued at the point of service, reducing the dependency on manual paperwork and physical visits to government offices.
+Expiry & Reissuance of Certificates
+Some certificates, such as Income Certificates, Caste Certificates, and Eligibility Proofs, have expiry dates and must be reissued periodically. The Certificate Service supports three modes of reissuance:
+Automatic Reissuance from the Source System
+If the data in the departmental system changes, the Certificate Service can trigger automatic updates.
+Manual Verification Before Reissuance
+Certain certificates may require human validation (e.g., residence proof verification) before reissuance.
+Citizen-Initiated Reissuance Requests
+Citizens can log into the SDIP Citizen Portal, view their certificates, and request reissuance if required.
+The Certificate Server automatically tracks expiry and can proactively notify departments or citizens to request renewal.
+Citizen Access to Certificates
+The Certificate Service provides citizens with multiple ways to access and use their certificates:
+View & Download Certificates: Citizens can log into the SDIP Citizen Portal and download digitally signed certificates in PDF format.
+Upload Certificates to Existing Department Systems: If a department does not yet support direct API integration, the citizen can manually upload the signed PDF.
+Offline Verification of Signed PDFs: Departments can extract and verify digital signatures from PDF certificates without needing direct API calls to SDIP.
+Mobile App Integration: Future enhancements may allow secure storage of certificates in mobile wallets, enabling paperless service delivery.
+To support seamless adoption, SDIP will provide documentation and sample code to help departments enhance their existing IT systems to verify signed certificates without needing to connect to SDIP directly.

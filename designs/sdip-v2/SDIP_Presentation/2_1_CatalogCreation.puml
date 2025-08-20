@@ -1,0 +1,186 @@
+@startuml
+title SDIP Catalog Creation Process
+
+skinparam participant {
+    BackgroundColor<<department>> lightblue
+    BorderColor<<department>> blue
+    FontColor<<department>> darkblue
+    FontStyle<<department>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<sdip>> lightyellow
+    BorderColor<<sdip>> orange
+    FontColor<<sdip>> darkorange
+    FontStyle<<sdip>> italic
+}
+
+skinparam actor {
+    BackgroundColor<<department>> lightblue
+    BorderColor<<department>> blue
+}
+
+skinparam actor {
+    BackgroundColor<<sdip>> lightyellow  
+    BorderColor<<sdip>> orange
+}
+
+skinparam note {
+    BackgroundColor wheat
+    BorderColor brown
+}
+
+actor Dept1Admin as "Department\nAdmin" <<department>>
+
+|||
+
+participant Keycloak as "Keycloak" <<sdip>>
+participant ParticipantRegistry as "Participant\nRegistry" <<sdip>>
+participant CatalogueService as "Catalogue\nService" <<sdip>>
+participant AuditService as "Audit\nService" <<sdip>>
+participant otherServices as "..." <<sdip>>
+
+note over Dept1Admin
+**Prerequisites:**
+- Department approved and active
+- Keypair stored in Keycloak
+- Admin has valid credentials
+end note
+
+== Phase 1: Authentication ==
+
+activate Dept1Admin
+Dept1Admin -> Keycloak: POST /auth/realms/sdip/protocol/openid-connect/token\n**Request access token**\n{client_id, client_secret, grant_type}
+activate Keycloak
+
+alt Authentication successful
+    Keycloak --> Dept1Admin: 200 OK\n{access_token, expires_in, token_type}
+    note over Dept1Admin: Token received\nReady to create catalog
+else Authentication failed
+    Keycloak --> Dept1Admin: 401 Unauthorized\n{error: "Invalid credentials"}
+    note over Dept1Admin: Cannot proceed without\nvalid authentication
+end
+deactivate Keycloak
+
+== Phase 2: Catalog Creation ==
+
+Dept1Admin -> CatalogueService: POST /catalog/create\n**Create catalog entry**\nAuthorization: Bearer {access_token}\n{departmentId, entryType: "API", apiName, endpoint, methods, requestFormat, responseFormat, roles}
+activate CatalogueService
+
+CatalogueService -> Keycloak: Validate token and extract user details
+activate Keycloak
+Keycloak --> CatalogueService: Token valid\n{userId, departmentId, roles}
+deactivate Keycloak
+
+CatalogueService -> CatalogueService: Validate user access:\n- Does user belong to departmentId?\n- Does user have catalog creation rights?\n- Match token departmentId with request departmentId
+
+alt User validation successful
+    CatalogueService -> ParticipantRegistry: Verify department is active\n{departmentId}
+    activate ParticipantRegistry
+    
+    alt Department is active
+        ParticipantRegistry --> CatalogueService: Department status: ACTIVE
+        note over CatalogueService: Department validated\nProceed with catalog creation
+    else Department not active
+        ParticipantRegistry --> CatalogueService: Department status: INACTIVE/REJECTED
+        CatalogueService --> Dept1Admin: 403 Forbidden\n{error: "Department not active"}
+        note over Dept1Admin: Cannot create catalog\nDepartment must be active
+    end
+    deactivate ParticipantRegistry
+else User validation failed
+    CatalogueService --> Dept1Admin: 403 Forbidden\n{error: "User not authorized for this department"}
+    note over Dept1Admin: User lacks permission\nto modify this department's catalog
+end
+
+CatalogueService -> CatalogueService: Validate catalog entry:\n- API endpoint format\n- Request/response schema\n- Role definitions\n- Duplicate check
+
+alt Catalog creation successful
+    CatalogueService -> AuditService: Log catalog creation
+    activate AuditService
+    AuditService --> CatalogueService: Logged
+    deactivate AuditService
+    
+    CatalogueService --> Dept1Admin: 201 Created\n{catalogId, status: "ACTIVE", type: "API", endpoints: [...]}
+    note over Dept1Admin: API catalog created successfully\nAPI endpoints now available
+else API catalog creation failed
+    CatalogueService -> AuditService: Log catalog creation failure
+    activate AuditService
+    AuditService --> CatalogueService: Logged
+    deactivate AuditService
+    
+    CatalogueService --> Dept1Admin: 400 Bad Request\n{error: "Invalid API catalog format", details: [...]}
+    note over Dept1Admin: Fix validation errors\nand retry API catalog creation
+end
+deactivate CatalogueService
+
+== Phase 3: Certificate Catalog Creation ==
+
+activate Dept1Admin
+Dept1Admin -> CatalogueService: POST /catalog/create\n**Create certificate catalog entry**\nAuthorization: Bearer {access_token}\n{departmentId, entryType: "CERTIFICATE", certificateName, certificateType, dataFields, validity, eligibility}
+activate CatalogueService
+
+CatalogueService -> Keycloak: Validate token and extract user details
+activate Keycloak
+Keycloak --> CatalogueService: Token valid\n{userId, departmentId, roles}
+deactivate Keycloak
+
+CatalogueService -> CatalogueService: Validate user access:\n- Does user belong to departmentId?\n- Does user have catalog creation rights?\n- Match token departmentId with request departmentId
+
+alt User has permission
+    CatalogueService -> ParticipantRegistry: Verify department is active
+    activate ParticipantRegistry
+    ParticipantRegistry --> CatalogueService: Department status confirmed
+    deactivate ParticipantRegistry
+    
+    CatalogueService -> CatalogueService: Validate certificate entry:\n- Certificate type and format\n- Data field definitions\n- Eligibility criteria\n- Duplicate check
+    
+    alt Certificate catalog creation successful
+        CatalogueService -> AuditService: Log certificate catalog creation
+        activate AuditService
+        AuditService --> CatalogueService: Logged
+        deactivate AuditService
+        
+        CatalogueService --> Dept1Admin: 201 Created\n{catalogId, status: "ACTIVE", type: "CERTIFICATE", certificateDetails: [...]}
+        note over Dept1Admin: Certificate catalog created successfully\nCertificates immediately available\n**No approval required**
+    else Certificate catalog creation failed
+        CatalogueService -> AuditService: Log certificate catalog creation failure
+        activate AuditService
+        AuditService --> CatalogueService: Logged
+        deactivate AuditService
+        
+        CatalogueService --> Dept1Admin: 400 Bad Request\n{error: "Invalid certificate catalog format", details: [...]}
+        note over Dept1Admin: Fix validation errors\nand retry certificate catalog creation
+    end
+else User lacks permission
+    CatalogueService --> Dept1Admin: 403 Forbidden\n{error: "Not authorized to create catalog for this department"}
+end
+deactivate CatalogueService
+
+== Phase 4: Catalog Update (Optional) ==
+
+Dept1Admin -> CatalogueService: PUT /catalog/{id}\n**Update existing catalog**\nAuthorization: Bearer {access_token}\n{departmentId, entryType, updatedFields}
+activate CatalogueService
+
+CatalogueService -> Keycloak: Validate token and extract user details
+activate Keycloak
+Keycloak --> CatalogueService: Token valid\n{userId, departmentId, roles}
+deactivate Keycloak
+
+CatalogueService -> CatalogueService: Validate user access:\n- Does user belong to departmentId?\n- Does user own this catalog?\n- Match token departmentId with catalog departmentId\n- Check catalog type (API/CERTIFICATE)
+
+alt User has permission
+    CatalogueService -> AuditService: Log catalog update
+    activate AuditService
+    AuditService --> CatalogueService: Logged
+    deactivate AuditService
+    
+    CatalogueService --> Dept1Admin: 200 OK\n{catalogId, status: "UPDATED"}
+else User lacks permission
+    CatalogueService --> Dept1Admin: 403 Forbidden\n{error: "Not authorized to update this catalog"}
+end
+deactivate CatalogueService
+deactivate Dept1Admin
+
+note over Dept1Admin, otherServices: **Catalog creation complete**\nDepartment APIs and Certificates are now discoverable\nAPIs require approval, Certificates are immediately available
+
+@enduml

@@ -1,0 +1,47 @@
+@startuml
+title SDIP Installation and Setup Department
+
+actor Dept1Admin as "DEPT 1 \nAdmin" order 1
+participant ld1Dept as "Dept 1\nServices" order 1 #DFd9Df
+'participant ld2Dept as "LD 2 \n Services" order 2 #DFd9Df
+
+participant Keycloak as "Keycloak" order 3 #DFd9Df
+participant ParticipantRegistry as "Participant\n Registry" order 4 #DFd9Df
+'participant CatalogueService as "Catalogue \n Service" order 5 #DFd9Df
+'participant IdMatcher as "ID Matching\nService" order 5 #DFd9Df
+'participant CertificateServer as "Certificate Service" order 6 #DFd9Df
+'participant RequestService as "Request Service" order 7 #DFd9Df
+'participant FileStore as "File Store" order 8 #DFd9Df
+'participant GrievanceService as "Grievance Service" order 9 #DFd9Df
+'participant AnalyticsServer as "Analytics Server" order 10 #DFd9Df
+participant otherServices as "..." order 11 #DFd9Df
+actor SDIPAdmin as "SDIP \nAdministrator" order 12
+
+Dept1Admin -> ParticipantRegistry: department/create \nSubmit Department Registration Request\n
+note right: Register Department details in registry
+ParticipantRegistry -> Keycloak: Create user in Keycloak
+Dept1Admin <-- ParticipantRegistry: Return department id and user credentials
+Dept1Admin -> ld1Dept: Install server, update dept id and \n generate keypair
+Dept1Admin -> ld1Dept: verify installation
+ld1Dept -> Keycloak: Request for auth token
+ld1Dept <-- Keycloak: Return auth token
+ld1Dept -> ParticipantRegistry: department/update \nSubmit Installation Verification
+ParticipantRegistry -> ld1Dept: Get department id
+ld1Dept --> ParticipantRegistry: Return department id
+ParticipantRegistry -> ParticipantRegistry: Update status to "verified"
+ld1Dept <-- ParticipantRegistry: Return verification status
+Dept1Admin -> Keycloak: Submit generated key pair
+Dept1Admin -> ParticipantRegistry: department/update \nSubmit Approval for Department
+Dept1Admin <-- ParticipantRegistry: Return approval status
+
+SDIPAdmin -> ParticipantRegistry: department/update \nApprove Department Registration
+note left: Admin verifies the application then approves it
+ParticipantRegistry --> SDIPAdmin: Return approval status
+
+
+
+
+'Dept1Admin -> ParticipantRegistry: config/create
+'note over ParticipantRegistry: Enter master details like program details, \n list of exposed API's and configurations.
+
+@enduml

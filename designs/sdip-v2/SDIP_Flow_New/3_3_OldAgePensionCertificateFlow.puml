@@ -1,0 +1,175 @@
+@startuml
+title SDIP Old Age Pension - Certificate-Based Verification Flow
+
+skinparam participant {
+    BackgroundColor<<revenue>> lightblue
+    BorderColor<<revenue>> blue
+    FontStyle<<revenue>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<health>> lightcyan
+    BorderColor<<health>> darkblue
+    FontStyle<<health>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<pension>> lightgreen
+    BorderColor<<pension>> green
+    FontStyle<<pension>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<citizen>> lightyellow
+    BorderColor<<citizen>> orange
+    FontStyle<<citizen>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<sdip>> wheat
+    BorderColor<<sdip>> brown
+    FontStyle<<sdip>> italic
+}
+
+skinparam actor {
+    BackgroundColor<<revenue>> lightblue
+    BorderColor<<revenue>> blue
+}
+
+skinparam actor {
+    BackgroundColor<<health>> lightcyan
+    BorderColor<<health>> darkblue
+}
+
+skinparam actor {
+    BackgroundColor<<pension>> lightgreen
+    BorderColor<<pension>> green
+}
+
+skinparam actor {
+    BackgroundColor<<citizen>> lightyellow
+    BorderColor<<citizen>> orange
+}
+
+actor RevenueDept as "Revenue\nDepartment" <<revenue>>
+actor HealthDept as "Health\nDepartment" <<health>>
+actor Citizen as "Senior\nCitizen" <<citizen>>
+actor PensionDept as "Social Welfare\nDepartment\n(Old Age Pension)" <<pension>>
+
+participant CertificateService as "Certificate\nService" <<sdip>>
+participant CertificateStore as "Certificate\nStore" <<sdip>>
+participant RequestService as "Request\nService" <<sdip>>
+participant IDMatchingService as "ID Matching\nService" <<sdip>>
+participant CitizenPortal as "Citizen\nPortal" <<sdip>>
+
+== Step 1: Required Certificates Already Issued ==
+
+note over RevenueDept, HealthDept
+**Prerequisites: Certificates already exist in SDIP**
+- Income Certificate (Revenue Dept)
+- Land Holdings Certificate (Revenue Dept)
+- Death Certificate (Health Department) - if applicable
+All certificates digitally signed and stored
+end note
+
+== Step 2: Citizen Applies for Old Age Pension ==
+
+activate Citizen
+Citizen -> PensionDept: Apply for old age pension
+activate PensionDept
+note over Citizen, PensionDept: Application includes:\n- Personal details\n- Consent for certificate verification
+
+PensionDept --> Citizen: Application received\nVerification in progress
+deactivate Citizen
+
+== Step 3: Certificate Verification Process ==
+
+PensionDept -> RequestService: Request citizen certificate verification
+activate RequestService
+note over RequestService: **Asynchronous verification request:**\n1. Income Certificate - Below threshold\n2. Land Holdings - Within limits\n3. Death Certificate - Confirm person is alive
+
+RequestService -> IDMatchingService: Identify citizen across systems
+activate IDMatchingService
+note over IDMatchingService: **ID Matching Process:**\n- Use Aadhaar if available\n- Probabilistic mapping if Aadhaar unavailable\n- Link records across departments\n- Eliminate duplicate records
+IDMatchingService --> RequestService: Unified citizen identity
+deactivate IDMatchingService
+
+RequestService -> CertificateService: Retrieve certificates for verified identity
+activate CertificateService
+
+== Verification 1: Income Certificate ==
+
+CertificateService -> CertificateStore: Get income certificate
+activate CertificateStore
+CertificateStore --> CertificateService: Income certificate data
+deactivate CertificateStore
+
+CertificateService -> CertificateService: **Verify Income Certificate:**\n- Check digital signature (Revenue Dept)\n- Validate not expired\n- Confirm income below pension threshold
+
+alt Income Certificate Valid & Below Threshold
+    note over CertificateService: ✓ Income verification passed
+else Income Above Threshold or Invalid
+    CertificateService -> RequestService: Income verification failed
+    RequestService --> PensionDept: Income verification failed
+    PensionDept -> Citizen: Pension denied - Income too high
+    note over Citizen: Application rejected
+end
+
+== Verification 2: Land Holdings Certificate ==
+
+CertificateService -> CertificateStore: Get land holdings certificate
+activate CertificateStore
+CertificateStore --> CertificateService: Land holdings certificate
+deactivate CertificateStore
+
+CertificateService -> CertificateService: **Verify Land Holdings:**\n- Check digital signature (Revenue Dept)\n- Validate not expired\n- Confirm land within permitted limits
+
+alt Land Holdings Within Limits
+    note over CertificateService: ✓ Land holdings verification passed
+else Land Holdings Exceed Limits
+    CertificateService -> RequestService: Land holdings verification failed
+    RequestService --> PensionDept: Land holdings verification failed
+    PensionDept -> Citizen: Pension denied - Land holdings exceed limit
+    note over Citizen: Application rejected
+end
+
+== Verification 3: Death Certificate Check ==
+
+CertificateService -> CertificateStore: Check for death certificate
+activate CertificateStore
+CertificateStore --> CertificateService: Death certificate search result
+deactivate CertificateStore
+
+CertificateService -> CertificateService: **Verify Person is Alive:**\n- Check for death certificate (Health Dept)\n- If no death certificate found, person is alive\n- If death certificate exists, verify validity
+
+alt No Death Certificate Found
+    note over CertificateService: ✓ Person is alive - No death record
+    CertificateService -> RequestService: All verifications successful
+    RequestService --> PensionDept: **Verification Complete:**\n✓ Income below threshold\n✓ Land holdings within limits\n✓ Person is alive
+else Death Certificate Found
+    CertificateService -> RequestService: Death certificate found
+    RequestService --> PensionDept: Verification failed - Person deceased
+    PensionDept -> Citizen: Pension denied - Death certificate on record
+    note over Citizen: Cannot process pension\nfor deceased person
+end
+
+deactivate CertificateService
+deactivate RequestService
+
+== Step 4: Pension Approval ==
+
+PensionDept -> PensionDept: **All verifications passed:**\n- Income below threshold ✓\n- Land holdings within limits ✓\n- Person is alive ✓
+
+PensionDept -> PensionDept: Process pension approval\nCalculate pension amount\nSetup periodic payments
+
+PensionDept -> Citizen: **Pension Approved!**\nPayments will commence
+activate Citizen
+
+note over Citizen: Pension approved without\nsubmitting physical documents
+
+deactivate Citizen
+deactivate PensionDept
+
+note over RevenueDept, PensionDept: **Certificate-based pension processing complete**\nSecure, automated verification using:\n- ID Matching Service for unified citizen identity\n- Request Service for asynchronous processing\n- Digitally signed certificates from multiple departments
+
+@enduml

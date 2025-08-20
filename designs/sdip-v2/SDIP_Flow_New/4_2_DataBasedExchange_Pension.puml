@@ -1,0 +1,180 @@
+@startuml
+title SDIP Data-Based Exchange - Pension Scheme Verification
+
+skinparam participant {
+    BackgroundColor<<revenue>> lightblue
+    BorderColor<<revenue>> blue
+    FontStyle<<revenue>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<health>> lightcyan
+    BorderColor<<health>> darkblue
+    FontStyle<<health>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<pension>> lightgreen
+    BorderColor<<pension>> green
+    FontStyle<<pension>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<citizen>> lightyellow
+    BorderColor<<citizen>> orange
+    FontStyle<<citizen>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<sdip>> wheat
+    BorderColor<<sdip>> brown
+    FontStyle<<sdip>> italic
+}
+
+actor Citizen as "Senior\nCitizen" <<citizen>>
+actor PensionDept as "Social Welfare\nDepartment" <<pension>>
+participant RevenueDept as "Revenue\nDepartment" <<revenue>>
+participant HealthDept as "Health\nDepartment" <<health>>
+
+participant CatalogueService as "Catalogue\nService" <<sdip>>
+participant RequestService as "Request\nService" <<sdip>>
+participant IDMatchingService as "ID Matching\nService" <<sdip>>
+participant FileStoreService as "File Store\nService" <<sdip>>
+
+note over Citizen, FileStoreService
+**Prerequisites: Departments have published data APIs in catalog**
+- Revenue Dept: Income data API, Land holdings API
+- Health Dept: Death records API
+- APIs discoverable through Catalogue Service
+- Response files stored in FileStore Service
+end note
+
+== Step 1: Citizen Applies for Pension ==
+
+activate Citizen
+Citizen -> PensionDept: Apply for old age pension
+activate PensionDept
+note over Citizen, PensionDept: Application includes:\n- Personal details\n- Consent for data verification
+
+PensionDept --> Citizen: Application received\nData verification in progress
+deactivate Citizen
+
+== Step 2: Discover Available Data APIs ==
+
+PensionDept -> CatalogueService: Search for required data APIs
+activate CatalogueService
+note over CatalogueService: **Search criteria:**\n- Income verification API\n- Land holdings API\n- Death records API
+
+CatalogueService --> PensionDept: Available data APIs
+deactivate CatalogueService
+note over PensionDept: APIs discovered:\n- Revenue Dept APIs\n- Health Dept APIs
+
+== Step 3: Data Request Process ==
+
+PensionDept -> RequestService: Submit data verification request
+activate RequestService
+note over RequestService: **Master request for:**\n- Citizen ID\n- Required data types\n- Purpose: Pension eligibility
+
+RequestService -> IDMatchingService: Match citizen identity across systems
+activate IDMatchingService
+note over IDMatchingService: **ID Resolution:**\n- Map citizen ID to department systems\n- Handle different ID formats\n- Ensure data consistency
+IDMatchingService --> RequestService: Unified citizen identity mapping
+deactivate IDMatchingService
+
+RequestService --> PensionDept: Request submitted\nMultiple sub-requests will be created
+deactivate RequestService
+
+== Step 4: Create Individual Requests ==
+
+note over RequestService: **Request Service creates separate requests:**\n1. Income data request → Revenue Dept\n2. Land holdings request → Revenue Dept\n3. Death records request → Health Dept
+
+RequestService -> RevenueDept: **Request 1:** Income data request
+activate RequestService
+activate RevenueDept
+note over RevenueDept: **Process income request:**\n- Validate authorization\n- Query income database\n- Generate response file
+RevenueDept -> RevenueDept: Query internal income database
+RevenueDept -> FileStoreService: Store income data response
+activate FileStoreService
+FileStoreService --> RevenueDept: File stored with ID: INC_001
+deactivate FileStoreService
+RevenueDept --> RequestService: Response file ready: INC_001
+deactivate RevenueDept
+
+RequestService -> RevenueDept: **Request 2:** Land holdings data request
+activate RevenueDept
+note over RevenueDept: **Process land holdings request:**\n- Validate authorization\n- Query land records\n- Generate response file
+RevenueDept -> RevenueDept: Query land records system
+RevenueDept -> FileStoreService: Store land holdings response
+activate FileStoreService
+FileStoreService --> RevenueDept: File stored with ID: LAND_001
+deactivate FileStoreService
+RevenueDept --> RequestService: Response file ready: LAND_001
+deactivate RevenueDept
+
+RequestService -> HealthDept: **Request 3:** Death record check
+activate HealthDept
+note over HealthDept: **Process death records request:**\n- Validate authorization\n- Search death database\n- Generate response file
+HealthDept -> HealthDept: Query death records database
+HealthDept -> FileStoreService: Store death status response
+activate FileStoreService
+FileStoreService --> HealthDept: File stored with ID: DEATH_001
+deactivate FileStoreService
+HealthDept --> RequestService: Response file ready: DEATH_001
+deactivate HealthDept
+
+RequestService --> PensionDept: **All response files ready**\nFiles: INC_001, LAND_001, DEATH_001
+deactivate RequestService
+
+== Step 5: Retrieve and Process Response Files ==
+
+PensionDept -> FileStoreService: Retrieve income data file (INC_001)
+activate FileStoreService
+FileStoreService --> PensionDept: Income data file
+deactivate FileStoreService
+note over PensionDept: Income: ₹8,000/month
+
+PensionDept -> FileStoreService: Retrieve land holdings file (LAND_001)
+activate FileStoreService
+FileStoreService --> PensionDept: Land holdings data file
+deactivate FileStoreService
+note over PensionDept: Land: 0.5 acres
+
+PensionDept -> FileStoreService: Retrieve death status file (DEATH_001)
+activate FileStoreService
+FileStoreService --> PensionDept: Death status data file
+deactivate FileStoreService
+note over PensionDept: Death Record: Not found (Alive)
+
+== Step 6: Process Pension Application ==
+
+PensionDept -> PensionDept: **Process all retrieved data:**\n- Income: ₹8,000/month ✓\n- Land: 0.5 acres ✓\n- Death status: Alive ✓\n- Calculate eligibility
+
+alt All Data Confirms Eligibility
+    PensionDept -> PensionDept: **Pension approved:**\n- Calculate pension amount\n- Setup payment schedule\n- Generate pension ID
+    
+    PensionDept -> Citizen: **Pension Approved!**\nMonthly pension: ₹2,000\nPayments start next month
+    activate Citizen
+    note over Citizen: Pension approved using\ndata files from FileStore
+    deactivate Citizen
+    
+else Data Shows Ineligibility
+    PensionDept -> Citizen: **Pension Denied**\nReason: Does not meet eligibility criteria
+    activate Citizen
+    note over Citizen: Application rejected based\non data file analysis
+    deactivate Citizen
+end
+deactivate PensionDept
+
+== Step 8: Audit Trail ==
+
+note over PensionDept, HealthDept
+**Complete audit trail maintained:**
+- Data requests logged with timestamps
+- API access recorded for compliance
+- Citizen consent tracked
+- Inter-department data sharing documented
+end note
+
+note over Citizen, FileStoreService: **Data-based exchange complete**\nAsynchronous data verification using:\n- Multiple individual requests per department\n- Response files stored in FileStore Service\n- Pension department retrieves and processes files\n- Secure inter-department data sharing
+
+@enduml

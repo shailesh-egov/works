@@ -1,0 +1,76 @@
+@startuml
+title Certificate  - Daily Auto-Pull and Application Verification
+
+skinparam participant {
+    BackgroundColor<<dept>> lightblue
+    BorderColor<<dept>> blue
+    FontStyle<<dept>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<citizen>> lightyellow
+    BorderColor<<citizen>> orange
+    FontStyle<<citizen>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<sdip>> wheat
+    BorderColor<<sdip>> brown
+    FontStyle<<sdip>> italic
+}
+
+actor Citizen as "Citizen" <<citizen>>
+actor PensionDept as "Pension\nDept" <<dept>>
+participant RevenueDept as "Revenue\nDept" <<dept>>
+participant HealthDept as "Health\nDept" <<dept>>
+
+participant CertificateService as "Certificate\nService" <<sdip>>
+participant CertificateStore as "Certificate\nStore" <<sdip>>
+participant Scheduler as "Scheduler" <<sdip>>
+
+== Daily Certificate Generation ==
+
+note over Scheduler: **Daily 2:00 AM**\nTrigger certificate generation
+
+Scheduler -> CertificateService: Trigger daily certificate generation
+activate CertificateService
+
+CertificateService -> RevenueDept: Fetch income & land data
+activate RevenueDept
+RevenueDept --> CertificateService: Raw data (35,000 records)
+deactivate RevenueDept
+
+CertificateService -> HealthDept: Fetch death data
+activate HealthDept
+HealthDept --> CertificateService: Raw data (25,000 records)
+deactivate HealthDept
+
+note over CertificateService: **Similar process for other departments:**\nBirth, Education, Employment data
+
+CertificateService -> CertificateService: Generate all certificates\nwith digital signatures
+
+CertificateService -> CertificateStore: Store all certificates
+activate CertificateStore
+CertificateStore --> CertificateService: 90,000+ certificates stored
+deactivate CertificateStore
+
+CertificateService --> Scheduler: Generation complete
+deactivate CertificateService
+
+== Pension Application ==
+
+Citizen -> PensionDept: Apply for pension
+activate PensionDept
+
+PensionDept -> CertificateStore: Get citizen certificates
+activate CertificateStore
+CertificateStore --> PensionDept: Income, Land, Death certificates\n(Pre-loaded from all departments)
+deactivate CertificateStore
+
+PensionDept -> PensionDept: Process eligibility
+PensionDept -> Citizen: Pension decision
+deactivate PensionDept
+
+note over Citizen, CertificateStore: **Key Benefits:**\n- CertificateService handles all generation\n- Departments only provide raw data\n- Standardized certificates with digital signatures\n- Instant pension processing\n- Based on catalog definitions
+
+@enduml

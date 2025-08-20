@@ -1,0 +1,86 @@
+@startuml
+title SDIP Department Registration and API Setup
+
+actor Dept1Admin as "DEPT 1 \nAdmin" order 1
+participant ld1Dept as "LD 1 \n Services" order 1 #DFd9Df
+participant ParticipantRegistry as "Participant\n Registry" order 3 #DFd9Df
+participant CatalogueService as "Catalogue \n Service" order 4 #DFd9Df
+participant Keycloak as "Keycloak" order 5 #DFd9Df
+participant IdMatcher as "ID Matching\nService" order 5 #DFd9Df
+participant CertificateServer as "Certificate Service" order 6 #DFd9Df
+participant RequestService as "Request Service" order 7 #DFd9Df
+participant FileStore as "File Store" order 8 #DFd9Df
+participant GrievanceService as "Grievance Service" order 9 #DFd9Df
+participant AnalyticsServer as "Analytics Server" order 10 #DFd9Df
+actor SDIPAdmin as "SDIP \nAdministrator" order 11
+
+== Department Registration Phase ==
+
+Dept1Admin -> ParticipantRegistry: 1. Submit Registration Request\n(Department Details, Contact Info, \nData Provider/Consumer Role)
+note right
+Registration includes:
+- Department Name
+- Contact Details  
+- Role (Provider/Consumer/Both)
+- Authorization Documents
+end note
+
+ParticipantRegistry -> ParticipantRegistry: 2. Validate Registration Data
+ParticipantRegistry -> SDIPAdmin: 3. Send Registration for Approval
+note right
+SDIP Administrator verifies:
+- Department legitimacy
+- Authorization documents
+- Technical capabilities
+end note
+
+SDIPAdmin -> ParticipantRegistry: 4. Approve Registration
+ParticipantRegistry -> Keycloak: 5. Create Department User Account
+Keycloak -> ParticipantRegistry: 6. Return Credentials
+ParticipantRegistry -> Dept1Admin: 7. Registration Approved\n(Login Credentials, Participant ID)
+
+== Key Generation for Certificate Service ==
+
+Dept1Admin -> CertificateServer: 8. Generate Public/Private Key Pair
+CertificateServer -> CertificateServer: 9. Generate Keys
+CertificateServer -> ParticipantRegistry: 10. Store Public Key in Registry
+CertificateServer -> Dept1Admin: 11. Return Private Key\n(Secure Download)
+
+== API Registration in Catalogue Service ==
+
+Dept1Admin -> CatalogueService: 12. Register Department APIs\n(API Metadata, Endpoints, Data Schema)
+note right
+API Registration includes:
+- API Endpoints
+- Data Schema
+- Access Permissions
+- Rate Limits
+- Documentation
+end note
+
+CatalogueService -> CatalogueService: 13. Validate API Metadata
+CatalogueService -> ParticipantRegistry: 14. Verify Department Authorization
+ParticipantRegistry -> CatalogueService: 15. Confirm Department Status
+CatalogueService -> Dept1Admin: 16. API Registration Successful\n(API ID, Integration Guide)
+
+== Service Integration Setup ==
+
+Dept1Admin -> ld1Dept: 17. Configure Department Systems\n(Install Data Exchange SDK/Server)
+ld1Dept -> RequestService: 18. Test Request Service Connection
+RequestService -> ld1Dept: 19. Connection Successful
+
+ld1Dept -> IdMatcher: 20. Register for ID Matching Service
+IdMatcher -> ld1Dept: 21. ID Matching Service Ready
+
+ld1Dept -> FileStore: 22. Test File Exchange Capability
+FileStore -> ld1Dept: 23. File Exchange Ready
+
+ld1Dept -> GrievanceService: 24. Register Grievance Handlers
+GrievanceService -> ld1Dept: 25. Grievance Integration Ready
+
+ld1Dept -> AnalyticsServer: 26. Configure Event Emission
+AnalyticsServer -> ld1Dept: 27. Analytics Integration Ready
+
+Dept1Admin -> Dept1Admin: 28. Department Setup Complete\n(Ready for Data Exchange)
+
+@enduml

@@ -1,0 +1,84 @@
+@startuml
+title SDIP Old Age Pension - Verify using Certificate
+
+skinparam participant {
+    BackgroundColor<<revenue>> lightblue
+    BorderColor<<revenue>> blue
+    FontStyle<<revenue>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<health>> lightcyan
+    BorderColor<<health>> darkblue
+    FontStyle<<health>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<pension>> lightgreen
+    BorderColor<<pension>> green
+    FontStyle<<pension>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<citizen>> lightyellow
+    BorderColor<<citizen>> orange
+    FontStyle<<citizen>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<sdip>> wheat
+    BorderColor<<sdip>> brown
+    FontStyle<<sdip>> italic
+}
+
+actor Citizen as "Senior\nCitizen" <<citizen>>
+actor PensionDept as "Pension\nDepartment" <<pension>>
+participant RevenueDept as "Revenue\nDepartment" <<revenue>>
+participant HealthDept as "Health\nDepartment" <<health>>
+participant RequestService as "Request\nService" <<sdip>>
+participant IDMatchingService as "ID Matching\nService" <<sdip>>
+participant CertificateService as "Certificate\nService" <<sdip>>
+participant CertificateStore as "Certificate\nStore" <<sdip>>
+
+== 1. Apply for Pension ==
+Citizen -> PensionDept: Apply for old age pension
+
+== 2. Check Certificate Store ==
+PensionDept -> CertificateService: Check for existing certificates
+CertificateService -> CertificateStore: Search citizen certificates
+
+alt Certificates Exist
+    CertificateStore -> CertificateService: Certificates found
+    note over CertificateService: Use existing certificates
+else No Certificates Found
+    CertificateStore -> CertificateService: Certificate store empty
+    note over CertificateService: **First-time application**\nNeed to generate certificates
+    
+    == 2a. Generate Certificates ==
+    CertificateService -> RequestService: Request certificate generation
+    RequestService -> IDMatchingService: Match citizen identity
+    RequestService -> RevenueDept: Generate income & land certificates
+    RequestService -> HealthDept: Generate death status certificate
+    
+    RevenueDept -> CertificateStore: Store income & land certificates
+    HealthDept -> CertificateStore: Store life status certificate
+    note over CertificateStore: **Certificates now available**\nfor current and future use
+end
+
+== 3. Verify Certificates ==
+CertificateService -> CertificateStore: Retrieve all certificates
+note over CertificateService: **Verify eligibility:**\n- Income below threshold\n- Land holdings within limits\n- Person is alive
+
+alt All Verifications Pass
+    CertificateService -> PensionDept: Verification successful
+    PensionDept -> Citizen: **Pension Approved!**
+    note over Citizen: No physical documents required
+else Verification Fails
+    CertificateService -> PensionDept: Eligibility criteria not met
+    PensionDept -> Citizen: Pension denied
+    note over Citizen: Does not meet criteria
+end
+
+note over Citizen, CertificateStore: **Smart Certificate Management**\nFirst-time: Generate and store certificates\nSubsequent: Use existing certificates
+
+@enduml

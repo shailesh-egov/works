@@ -1,0 +1,212 @@
+@startuml
+title SDIP Certificate Store - Initial Loading Process
+
+skinparam participant {
+    BackgroundColor<<revenue>> lightblue
+    BorderColor<<revenue>> blue
+    FontStyle<<revenue>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<health>> lightcyan
+    BorderColor<<health>> darkblue
+    FontStyle<<health>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<pension>> lightgreen
+    BorderColor<<pension>> green
+    FontStyle<<pension>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<citizen>> lightyellow
+    BorderColor<<citizen>> orange
+    FontStyle<<citizen>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<sdip>> wheat
+    BorderColor<<sdip>> brown
+    FontStyle<<sdip>> italic
+}
+
+actor Citizen as "Senior\nCitizen" <<citizen>>
+actor PensionDept as "Social Welfare\nDepartment" <<pension>>
+participant RevenueDept as "Revenue\nDepartment" <<revenue>>
+participant HealthDept as "Health\nDepartment" <<health>>
+
+participant CertificateService as "Certificate\nService" <<sdip>>
+participant CertificateStore as "Certificate\nStore" <<sdip>>
+participant RequestService as "Request\nService" <<sdip>>
+participant IDMatchingService as "ID Matching\nService" <<sdip>>
+
+note over Citizen, IDMatchingService
+**Scenario: First-time pension application**
+- Citizen has never applied for any SDIP service before
+- Certificate Store is empty for this citizen
+- Certificates need to be generated and stored
+end note
+
+== Phase 1: Application Trigger ==
+
+activate Citizen
+Citizen -> PensionDept: **First-time application** for old age pension
+activate PensionDept
+note over Citizen, PensionDept: Application includes:\n- Personal details\n- Consent for data access\n- First-time applicant flag
+
+PensionDept --> Citizen: Application received\nProcessing initiated
+deactivate Citizen
+
+== Phase 2: Certificate Store Check ==
+
+PensionDept -> CertificateService: Check for existing certificates
+activate CertificateService
+CertificateService -> CertificateStore: Search for citizen certificates
+activate CertificateStore
+CertificateStore --> CertificateService: **No certificates found**
+deactivate CertificateStore
+
+note over CertificateService: **Certificate Store is empty**\nNeed to generate certificates\nfrom source departments
+
+== Phase 3: Certificate Requirements Discovery ==
+
+CertificateService -> CertificateService: **Identify required certificates:**\n- Income Certificate (for pension eligibility)\n- Land Holdings Certificate (for asset verification)\n- Death Certificate Status (to confirm alive)
+
+CertificateService -> RequestService: **Request certificate generation**\nfor pension eligibility verification
+activate RequestService
+
+RequestService -> IDMatchingService: Resolve citizen identity across departments
+activate IDMatchingService
+note over IDMatchingService: **Map citizen ID to:**\n- Revenue Department system ID\n- Health Department system ID\n- Ensure consistent identity
+IDMatchingService --> RequestService: Unified identity mapping
+deactivate IDMatchingService
+
+== Phase 4: Income Certificate Generation ==
+
+RequestService -> RevenueDept: **Request income certificate generation**\n{citizenId, purpose: "pension_eligibility"}
+activate RevenueDept
+
+RevenueDept -> RevenueDept: **Query internal systems:**\n- Income tax records\n- Employment database\n- Agricultural income records
+
+alt Income data available
+    RevenueDept -> RevenueDept: **Generate Income Certificate:**\n- Format in Verifiable Credential (VC)\n- Sign with Revenue Dept private key\n- Include validity period
+    
+    RevenueDept -> CertificateService: **Submit Income Certificate**\n{certificate: VC_format, signature: digital_signature}
+    activate CertificateService
+    CertificateService -> CertificateStore: **Store Income Certificate**
+    activate CertificateStore
+    CertificateStore --> CertificateService: Certificate stored successfully
+    deactivate CertificateStore
+    CertificateService --> RevenueDept: Storage confirmed
+    deactivate CertificateService
+    
+    RevenueDept --> RequestService: Income certificate generated & stored
+    note over CertificateStore: **Income Certificate**\nValue: ₹8,000/month\nValid until: Dec 2024
+else Income data not available
+    RevenueDept --> RequestService: Cannot generate - No income data
+    note over RequestService: **Fallback:** Request citizen\nto provide income proof
+end
+deactivate RevenueDept
+
+== Phase 5: Land Holdings Certificate Generation ==
+
+RequestService -> RevenueDept: **Request land holdings certificate**\n{citizenId, purpose: "asset_verification"}
+activate RevenueDept
+
+RevenueDept -> RevenueDept: **Query land records:**\n- Property registration database\n- Survey settlement records\n- Revenue records
+
+alt Land data available
+    RevenueDept -> RevenueDept: **Generate Land Certificate:**\n- Calculate total land holdings\n- Include property valuations\n- Sign with department key
+    
+    RevenueDept -> CertificateService: **Submit Land Holdings Certificate**
+    activate CertificateService
+    CertificateService -> CertificateStore: **Store Land Certificate**
+    activate CertificateStore
+    CertificateStore --> CertificateService: Certificate stored successfully
+    deactivate CertificateStore
+    CertificateService --> RevenueDept: Storage confirmed
+    deactivate CertificateService
+    
+    RevenueDept --> RequestService: Land certificate generated & stored
+    note over CertificateStore: **Land Holdings Certificate**\nArea: 0.5 acres\nValue: ₹2,00,000
+else Land data not available
+    RevenueDept --> RequestService: No land holdings found
+    note over CertificateStore: **No Land Certificate**\n(Citizen has no land)
+end
+deactivate RevenueDept
+
+== Phase 6: Death Certificate Status Generation ==
+
+RequestService -> HealthDept: **Request death certificate status**\n{citizenId, purpose: "life_verification"}
+activate HealthDept
+
+HealthDept -> HealthDept: **Query death records:**\n- Death certificate database\n- Hospital records\n- Civil registration data
+
+alt No death record found
+    HealthDept -> HealthDept: **Generate Life Status Certificate:**\n- Confirms person is alive\n- No death certificate on record\n- Valid for specified period
+    
+    HealthDept -> CertificateService: **Submit Life Status Certificate**
+    activate CertificateService
+    CertificateService -> CertificateStore: **Store Life Status Certificate**
+    activate CertificateStore
+    CertificateStore --> CertificateService: Certificate stored successfully
+    deactivate CertificateStore
+    CertificateService --> HealthDept: Storage confirmed
+    deactivate CertificateService
+    
+    HealthDept --> RequestService: Life status certificate generated & stored
+    note over CertificateStore: **Life Status Certificate**\nStatus: Alive\nValid until: Dec 2024
+else Death record found
+    HealthDept --> RequestService: **Death certificate exists**\nCannot process pension for deceased person
+    note over RequestService: **Application will be rejected**\nPerson is deceased
+end
+deactivate HealthDept
+
+== Phase 7: Certificate Store Population Complete ==
+
+RequestService -> CertificateService: **All certificates generated and stored**
+activate CertificateService
+CertificateService -> CertificateStore: **Retrieve all stored certificates**\nfor pension verification
+activate CertificateStore
+CertificateStore --> CertificateService: **Certificate collection:**\n- Income Certificate ✓\n- Land Holdings Certificate ✓\n- Life Status Certificate ✓
+deactivate CertificateStore
+
+CertificateService --> RequestService: **Certificates ready for verification**
+deactivate CertificateService
+RequestService --> PensionDept: **Certificate Store populated**\nReady to process pension application
+
+== Phase 8: Process Pension Application ==
+
+PensionDept -> CertificateService: **Now verify pension eligibility**\nusing stored certificates
+activate CertificateService
+note over CertificateService: **Use stored certificates:**\n- Income below threshold ✓\n- Land holdings within limits ✓\n- Person is alive ✓
+
+CertificateService --> PensionDept: **Eligibility verified**\nUsing certificates from store
+deactivate CertificateService
+
+PensionDept -> Citizen: **Pension Approved!**\nCertificates generated and verified
+activate Citizen
+note over Citizen: First-time application successful\nCertificates now available for future use
+
+deactivate RequestService
+deactivate PensionDept
+deactivate Citizen
+
+== Phase 9: Future Applications ==
+
+note over CertificateStore, IDMatchingService
+**Certificate Store now contains:**
+- Income Certificate (valid until Dec 2024)
+- Land Holdings Certificate (permanent)
+- Life Status Certificate (valid until Dec 2024)
+
+**Future applications can:**
+- Use existing certificates if still valid
+- Skip certificate generation process
+- Get faster processing times
+end note
+
+note over Citizen, IDMatchingService: **Certificate Store initial loading complete**\nFirst-time application triggers certificate generation\nSubsequent applications use stored certificates\nBootstrap process enables certificate-based ecosystem
+
+@enduml

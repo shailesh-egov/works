@@ -1,0 +1,181 @@
+{
+  "@context": [
+    "https://www.w3.org/2018/credentials/v1",
+    "https://sdip.punjab.gov.in/schemas/income-certificate/v1",
+    "https://w3id.org/security/suites/ed25519-2020/v1"
+  ],
+  "id": "https://sdip.punjab.gov.in/credentials/income-certificate/IC-2025-PB-REV-789456123",
+  "type": [
+    "VerifiableCredential",
+    "IncomeCertificate"
+  ],
+  "issuer": {
+    "id": "did:web:sdip.punjab.gov.in:departments:revenue",
+    "name": "Department of Revenue, Government of Punjab",
+    "publicKey": "z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH",
+    "address": {
+      "streetAddress": "Punjab Civil Secretariat",
+      "addressLocality": "Chandigarh",
+      "addressRegion": "Punjab",
+      "postalCode": "160001",
+      "addressCountry": "IN"
+    },
+    "contactPoint": {
+      "telephone": "+91-172-2740000",
+      "email": "revenue@punjab.gov.in"
+    }
+  },
+  "issuanceDate": "2025-07-21T10:30:00Z",
+  "expirationDate": "2026-07-21T23:59:59Z",
+  "credentialSubject": {
+    "id": "did:aadhaar:1234-5678-9012",
+    "personalInfo": {
+      "name": "Rajesh Kumar Singh",
+      "fatherName": "Harinder Singh",
+      "dateOfBirth": "1985-03-15",
+      "gender": "Male",
+      "aadhaarNumber": "xxxx-xxxx-9012",
+      "mobileNumber": "+91-98765-43210"
+    },
+    "address": {
+      "currentAddress": {
+        "houseNo": "123",
+        "streetAddress": "Gandhi Nagar",
+        "village": "Ludhiana",
+        "tehsil": "Ludhiana",
+        "district": "Ludhiana",
+        "state": "Punjab",
+        "pinCode": "141001"
+      },
+      "permanentAddress": {
+        "houseNo": "123",
+        "streetAddress": "Gandhi Nagar",
+        "village": "Ludhiana",
+        "tehsil": "Ludhiana",
+        "district": "Ludhiana",
+        "state": "Punjab",
+        "pinCode": "141001"
+      }
+    },
+    "incomeDetails": {
+      "annualIncome": {
+        "amount": 80000,
+        "currency": "INR",
+        "inWords": "Eighty Thousand Rupees Only"
+      },
+      "incomeCategory": "Middle Income",
+      "incomeSources": [
+        {
+          "sourceType": "Employment",
+          "employerName": "Punjab State Electricity Board",
+          "designation": "Junior Engineer",
+          "monthlyIncome": 35000
+        },
+        {
+          "sourceType": "Agricultural Income",
+          "description": "Income from 2 acres of agricultural land",
+          "monthlyIncome": 5000
+        }
+      ],
+      "assessmentYear": "2024-25",
+      "verificationMethod": "Income Tax Returns & Salary Certificate"
+    },
+    "certificateDetails": {
+      "certificateNumber": "IC-2025-PB-REV-789456123",
+      "applicationNumber": "APP-REV-2025-456789",
+      "issuedFor": "Scholarship Application - Higher Education",
+      "issuingOfficer": {
+        "name": "Preet Kaur Sandhu",
+        "designation": "Tehsildar",
+        "officeName": "Tehsil Office Ludhiana",
+        "employeeId": "PB-REV-2019-5647"
+      },
+      "verificationStatus": "Verified",
+      "remarks": "Income verified through ITR and employment records"
+    }
+  },
+  "evidence": [
+    {
+      "type": "DocumentVerification",
+      "documents": [
+        {
+          "type": "Income Tax Return",
+          "year": "2023-24",
+          "verificationDate": "2025-07-20",
+          "status": "Verified"
+        },
+        {
+          "type": "Salary Certificate",
+          "issuer": "Punjab State Electricity Board",
+          "verificationDate": "2025-07-20",
+          "status": "Verified"
+        },
+        {
+          "type": "Land Records",
+          "khasraNumbers": ["123/1", "124/2"],
+          "verificationDate": "2025-07-20",
+          "status": "Verified"
+        }
+      ]
+    }
+  ],
+  "credentialStatus": {
+    "id": "https://sdip.punjab.gov.in/credentials/status/IC-2025-PB-REV-789456123",
+    "type": "RevocationList2020Status",
+    "revocationListIndex": 789456123,
+    "revocationListCredential": "https://sdip.punjab.gov.in/credentials/status/revocation-list-2025"
+  },
+  "termsOfUse": [
+    {
+      "type": "IssuerPolicy",
+      "policy": "This certificate is valid for one year from the date of issuance and can be used for official purposes within Punjab state government departments.",
+      "prohibition": [
+        {
+          "assigner": "Department of Revenue, Punjab",
+          "assignee": "Certificate Holder",
+          "target": "This Credential",
+          "action": "commercial-use"
+        }
+      ]
+    }
+  ],
+  "refreshService": {
+    "id": "https://sdip.punjab.gov.in/credentials/refresh/IC-2025-PB-REV-789456123",
+    "type": "ManualRefreshService2018"
+  },
+  "proof": {
+    "type": "Ed25519Signature2020",
+    "created": "2025-07-21T10:30:00Z",
+    "verificationMethod": "did:web:sdip.punjab.gov.in:departments:revenue#key-1",
+    "proofPurpose": "assertionMethod",
+    "proofValue": "z58DAdFfa9SkqZMVPxAQpic7ndSayn1PzZs6ZjWp1CktyGesjuTReljaFI6sMZnJzGE12RZAQTrzGVLQDSdX4Yj5o"
+  },
+  "metadata": {
+    "sdipVersion": "1.0",
+    "schemaVersion": "1.2",
+    "processingTime": "2 working days",
+    "fees": {
+      "amount": 50,
+      "currency": "INR",
+      "receiptNumber": "REC-2025-789456"
+    },
+    "linkedRecords": [
+      {
+        "department": "Income Tax Department",
+        "recordType": "ITR",
+        "recordId": "ITR-2023-24-PAN-ABCDE1234F"
+      },
+      {
+        "department": "Land Records",
+        "recordType": "Property",
+        "recordId": "PROP-LDH-123-124"
+      }
+    ],
+    "auditTrail": {
+      "applicationReceived": "2025-07-19T09:00:00Z",
+      "documentsVerified": "2025-07-20T14:30:00Z",
+      "certificateIssued": "2025-07-21T10:30:00Z",
+      "verificationOfficer": "Preet Kaur Sandhu"
+    }
+  }
+}

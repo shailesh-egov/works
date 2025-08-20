@@ -1,0 +1,46 @@
+@startuml
+'title Digit exchange flow with program service for all the apis
+actor User as User order 0
+participant IBEX as IBEX order 1
+participant ADAPTER as IBEX_ADAPTER order 2
+participant IBEX_DX as IBEX_DX order 3
+participant CENTRAL_DX as CENTRAL_DX order 4
+participant ADAPTER as CENTRAL_ADAPTER order 5
+participant ANALYTICS_SERVER as ANALYTICS_SERVER order 6
+participant KAFKA as KAFKA order 7
+
+
+activate User
+User -> IBEX:  /disburse/_create
+activate IBEX
+IBEX -> KAFKA: Push request to kafka
+User <-- IBEX: Return success response
+deactivate User
+deactivate IBEX
+IBEX_ADAPTER -> KAFKA: Listen to the disburse create topic
+activate IBEX_ADAPTER
+IBEX_ADAPTER -> IBEX_ADAPTER: Process request and \n for analytics
+IBEX_ADAPTER -> IBEX_DX: /exchange/disburse
+activate IBEX_DX
+IBEX_ADAPTER <-- IBEX_DX: Return success response
+deactivate IBEX_ADAPTER
+IBEX_DX -> CENTRAL_DX: /exchange/disburse
+activate CENTRAL_DX
+IBEX_DX <-- CENTRAL_DX: Return success response
+deactivate IBEX_DX
+CENTRAL_DX -> CENTRAL_ADAPTER: /disburse/_create
+activate CENTRAL_ADAPTER
+CENTRAL_ADAPTER -> CENTRAL_ADAPTER: Validate request \nEnrich Analytics request
+deactivate CENTRAL_DX
+
+CENTRAL_ADAPTER -> ANALYTICS_SERVER: /create
+activate ANALYTICS_SERVER
+ANALYTICS_SERVER <-- CENTRAL_ADAPTER: Return success response
+
+deactivate CENTRAL_ADAPTER
+deactivate ANALYTICS_SERVER
+
+deactivate IBEX
+
+
+@enduml

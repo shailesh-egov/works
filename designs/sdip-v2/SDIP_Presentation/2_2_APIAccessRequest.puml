@@ -1,0 +1,207 @@
+@startuml
+title SDIP API Access Request Flow
+
+skinparam participant {
+    BackgroundColor<<dept1>> lightblue
+    BorderColor<<dept1>> blue
+    FontColor<<dept1>> darkblue
+    FontStyle<<dept1>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<dept2>> lightgreen
+    BorderColor<<dept2>> green
+    FontColor<<dept2>> darkgreen
+    FontStyle<<dept2>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<sdip>> lightyellow
+    BorderColor<<sdip>> orange
+    FontColor<<sdip>> darkorange
+    FontStyle<<sdip>> italic
+}
+
+skinparam actor {
+    BackgroundColor<<dept1>> lightblue
+    BorderColor<<dept1>> blue
+}
+
+skinparam actor {
+    BackgroundColor<<dept2>> lightgreen
+    BorderColor<<dept2>> green
+}
+
+skinparam actor {
+    BackgroundColor<<sdip>> lightyellow  
+    BorderColor<<sdip>> orange
+}
+
+skinparam note {
+    BackgroundColor wheat
+    BorderColor brown
+}
+
+actor Dept1Admin as "Department 1\nAdmin\n(API Provider)" <<dept1>>
+participant Dept1Services as "Department 1\nServices" <<dept1>>
+
+|||
+
+actor Dept2Admin as "Department 2\nAdmin\n(API Consumer)" <<dept2>>
+participant Dept2Services as "Department 2\nServices" <<dept2>>
+
+|||
+
+participant Keycloak as "Keycloak" <<sdip>>
+participant CatalogueService as "Catalogue\nService" <<sdip>>
+participant AuditService as "Audit\nService" <<sdip>>
+participant otherServices as "..." <<sdip>>
+
+note over Dept1Admin, Dept1Services
+**Prerequisites:**
+- Department 1 has published APIs in catalog
+- Department 2 is registered and active
+end note
+
+== Phase 1: API and Certificate Discovery ==
+
+activate Dept2Admin
+Dept2Admin -> Keycloak: POST /auth/realms/sdip/protocol/openid-connect/token\n**Get access token**
+activate Keycloak
+Keycloak --> Dept2Admin: 200 OK\n{access_token}
+deactivate Keycloak
+
+Dept2Admin -> CatalogueService: GET /catalog/search\n**Discover available APIs and certificates**\nAuthorization: Bearer {access_token}\n{searchCriteria, filters, type: "API|CERTIFICATE|ALL"}
+activate CatalogueService
+
+CatalogueService -> Keycloak: Validate token
+activate Keycloak
+Keycloak --> CatalogueService: Token valid\n{userId, departmentId}
+deactivate Keycloak
+
+CatalogueService --> Dept2Admin: 200 OK\n{availableAPIs: [{apiId, providerDept, endpoint, description, accessLevel}],\navailableCertificates: [{certId, providerDept, certType, dataFields, validity}]}
+deactivate CatalogueService
+
+note over Dept2Admin: Reviews available APIs\nIdentifies Department 1's APIs of interest
+
+== Phase 2: Access Request ==
+
+Dept2Admin -> CatalogueService: POST /catalog/access/request\n**Request API access**\nAuthorization: Bearer {access_token}\n{providerDepartmentId: "dept1", apiIds: [...], purpose, duration}
+activate CatalogueService
+
+CatalogueService -> Keycloak: Validate token and extract requester details
+activate Keycloak
+Keycloak --> CatalogueService: Token valid\n{requesterId, requesterDeptId: "dept2"}
+deactivate Keycloak
+
+CatalogueService -> CatalogueService: Validate access request:\n- Is requester department active?\n- Are requested APIs valid?\n- Check existing permissions\n- Store access request
+
+CatalogueService -> AuditService: Log access request
+activate AuditService
+AuditService --> CatalogueService: Logged
+deactivate AuditService
+
+CatalogueService --> Dept2Admin: 201 Created\n{requestId, status: "PENDING", message: "Request sent to Department 1"}
+deactivate CatalogueService
+
+note over Dept2Admin: Access request submitted\nWaiting for Department 1 approval
+
+== Phase 3: Approval Notification ==
+
+CatalogueService -> Dept1Admin: **Notification**\n{requestId, requesterDept: "dept2", requestedAPIs: [...], purpose}
+activate Dept1Admin
+
+note over Dept1Admin: Receives access request notification\nReviews request details
+
+== Phase 4: Access Approval ==
+
+Dept1Admin -> Keycloak: POST /auth/realms/sdip/protocol/openid-connect/token\n**Get access token**
+activate Keycloak
+Keycloak --> Dept1Admin: 200 OK\n{access_token}
+deactivate Keycloak
+
+Dept1Admin -> CatalogueService: GET /catalog/access/requests\n**Review pending requests**\nAuthorization: Bearer {access_token}
+activate CatalogueService
+
+CatalogueService -> Keycloak: Validate token
+activate Keycloak
+Keycloak --> CatalogueService: Token valid\n{userId, departmentId: "dept1"}
+deactivate Keycloak
+
+CatalogueService --> Dept1Admin: 200 OK\n{pendingRequests: [{requestId, requesterDept, apis, purpose, requestDate}]}
+
+alt Department 1 Admin approves request
+    Dept1Admin -> CatalogueService: PUT /catalog/access/requests/{requestId}/approve\n**Approve access request**\nAuthorization: Bearer {access_token}\n{approvalComments, accessLevel, validUntil}
+    
+    CatalogueService -> CatalogueService: Update access permissions:\n- Grant API access to Department 2\n- Set access level and duration\n- Store access grant in catalog
+    
+    CatalogueService -> Keycloak: Create/update access policies\n{consumerDept: "dept2", providerDept: "dept1", apis: [...]}
+    activate Keycloak
+    Keycloak --> CatalogueService: Access policies updated
+    deactivate Keycloak
+    
+    CatalogueService -> AuditService: Log approval decision
+    activate AuditService
+    AuditService --> CatalogueService: Logged
+    deactivate AuditService
+    
+    CatalogueService --> Dept1Admin: 200 OK\n{requestId, status: "APPROVED"}
+    
+    CatalogueService -> Dept2Admin: **Notification**\n{requestId, status: "APPROVED", accessDetails: {...}}
+    note over Dept2Admin: Access granted notification\nReceives API access credentials
+    
+else Department 1 Admin rejects request
+    Dept1Admin -> CatalogueService: PUT /catalog/access/requests/{requestId}/reject\n**Reject access request**\nAuthorization: Bearer {access_token}\n{rejectionReason}
+    
+    CatalogueService -> AuditService: Log rejection decision
+    activate AuditService
+    AuditService --> CatalogueService: Logged
+    deactivate AuditService
+    
+    CatalogueService --> Dept1Admin: 200 OK\n{requestId, status: "REJECTED"}
+    
+    CatalogueService -> Dept2Admin: **Notification**\n{requestId, status: "REJECTED", reason: "..."}
+    note over Dept2Admin: Access denied notification\nCannot access requested APIs
+end
+deactivate CatalogueService
+deactivate Dept1Admin
+
+== Phase 5: API Access ==
+
+note over Dept2Admin: **Only if approved** - Department 2 can now access APIs
+
+Dept2Admin -> Dept2Services: **Configure API access**\nUpdate service configuration with granted API credentials
+activate Dept2Services
+
+Dept2Services -> Keycloak: POST /auth/realms/sdip/protocol/openid-connect/token\n**Get service token with API access**\n{client_id, client_secret, scope: "dept1-apis"}
+activate Keycloak
+Keycloak --> Dept2Services: 200 OK\n{access_token, scope: "dept1-apis"}
+deactivate Keycloak
+
+Dept2Services -> Dept1Services: GET /dept1/api/endpoint\n**Access Department 1's API**\nAuthorization: Bearer {access_token}
+activate Dept1Services
+
+Dept1Services -> Keycloak: Validate token and permissions
+activate Keycloak
+Keycloak --> Dept1Services: Token valid\n{consumerDept: "dept2", permissions: [...]}
+deactivate Keycloak
+
+alt Access authorized
+    Dept1Services -> AuditService: Log API access
+    activate AuditService
+    AuditService --> Dept1Services: Logged
+    deactivate AuditService
+    
+    Dept1Services --> Dept2Services: 200 OK\n{apiResponse}
+    note over Dept2Services: API call successful\nData exchange completed
+else Access denied
+    Dept1Services --> Dept2Services: 403 Forbidden\n{error: "Access denied"}
+    note over Dept2Services: Access denied\nCheck permissions or token
+end
+deactivate Dept1Services
+deactivate Dept2Services
+deactivate Dept2Admin
+
+note over Dept1Admin, otherServices: **API access flow complete**\nDepartment 2 can now access\nDepartment 1's approved APIs
+
+@enduml

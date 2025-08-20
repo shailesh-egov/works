@@ -1,0 +1,134 @@
+@startuml
+title SDIP Certificate Generation from Catalog Service
+
+skinparam participant {
+    BackgroundColor<<dept>> lightblue
+    BorderColor<<dept>> blue
+    FontStyle<<dept>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<sdip>> wheat
+    BorderColor<<sdip>> brown
+    FontStyle<<sdip>> italic
+}
+
+skinparam note {
+    BackgroundColor lightgray
+    BorderColor black
+}
+
+participant CertificateService as "Certificate\nService" <<sdip>>
+participant CatalogueService as "Catalogue\nService" <<sdip>>
+participant CertificateStore as "Certificate\nStore" <<sdip>>
+
+participant RevenueDept as "Revenue\nDepartment" <<dept>>
+participant HealthDept as "Health\nDepartment" <<dept>>
+participant CivilDept as "Civil\nRegistration" <<dept>>
+
+note over CertificateService, CivilDept
+**Prerequisites:**
+- Departments have published certificate definitions in catalog
+- Certificate Service has access to department data APIs
+- Certificate Store is ready for storage
+end note
+
+== Phase 1: Fetch Certificate Definitions from Catalog ==
+
+activate CertificateService
+CertificateService -> CatalogueService: **Get all certificate definitions**\nGET /catalog/certificates
+activate CatalogueService
+
+CatalogueService -> CatalogueService: **Query certificate catalog:**\n- Income certificates (Revenue Dept)\n- Land certificates (Revenue Dept)\n- Death certificates (Health Dept)\n- Birth certificates (Civil Registration)\n- Education certificates (Education Dept)\n- Employment certificates (Labor Dept)
+
+CatalogueService --> CertificateService: **Certificate definitions list**\n{certificateType, sourceAPI, dataFields, validityPeriod, signatureRequired}
+deactivate CatalogueService
+
+note over CertificateService: **Certificate definitions received:**\n- 6 certificate types from 5 departments\n- Data field specifications\n- Validation rules\n- Signature requirements
+
+== Phase 2: Generate Revenue Department Certificates ==
+
+CertificateService -> RevenueDept: **Fetch income data for all citizens**\nGET /revenue/api/income-data
+activate RevenueDept
+note over RevenueDept: **Revenue Department:**\n- Query income database\n- Return structured income data\n- Include citizen ID mapping
+
+RevenueDept -> RevenueDept: Query income database for all citizens
+RevenueDept --> CertificateService: **Income data batch**\n{citizenId, income, period, source, verificationStatus}
+deactivate RevenueDept
+
+CertificateService -> CertificateService: **Generate income certificates:**\n- Apply certificate template from catalog\n- Add digital signature\n- Set validity period\n- Include verification metadata
+
+CertificateService -> RevenueDept: **Fetch land holdings data for all citizens**\nGET /revenue/api/land-data
+activate RevenueDept
+note over RevenueDept: **Revenue Department:**\n- Query land records database\n- Return structured land data\n- Include property details
+
+RevenueDept -> RevenueDept: Query land records database for all citizens
+RevenueDept --> CertificateService: **Land data batch**\n{citizenId, landHoldings, area, location, ownershipType}
+deactivate RevenueDept
+
+CertificateService -> CertificateService: **Generate land certificates:**\n- Apply certificate template from catalog\n- Add digital signature\n- Set validity period\n- Include property verification
+
+== Phase 3: Generate Health Department Certificates ==
+
+CertificateService -> HealthDept: **Fetch death records for all citizens**\nGET /health/api/death-records
+activate HealthDept
+note over HealthDept: **Health Department:**\n- Query death records database\n- Return death status data\n- Include verification details
+
+HealthDept -> HealthDept: Query death records database
+HealthDept --> CertificateService: **Death records batch**\n{citizenId, deathStatus, deathDate, cause, registrationNumber}
+deactivate HealthDept
+
+CertificateService -> CertificateService: **Generate death status certificates:**\n- Apply certificate template from catalog\n- Add digital signature\n- Set validity period\n- Include medical verification
+
+== Phase 4: Generate Civil Registration Certificates ==
+
+CertificateService -> CivilDept: **Fetch birth records for all citizens**\nGET /civil/api/birth-records
+activate CivilDept
+note over CivilDept: **Civil Registration:**\n- Query birth records database\n- Return birth certificate data\n- Include parent details
+
+CivilDept -> CivilDept: Query birth records database
+CivilDept --> CertificateService: **Birth records batch**\n{citizenId, birthDate, birthPlace, parentDetails, registrationNumber}
+deactivate CivilDept
+
+CertificateService -> CertificateService: **Generate birth certificates:**\n- Apply certificate template from catalog\n- Add digital signature\n- Set validity period\n- Include civil registration verification
+
+== Phase 5: Similar Process for Other Departments ==
+
+note over CertificateService: **Same process repeated for:**\n- Education certificates (Education Department)\n- Employment certificates (Labor Department)\n- Any other certificate types defined in catalog
+
+== Phase 6: Store All Generated Certificates ==
+
+CertificateService -> CertificateStore: **Store all generated certificates**\nPOST /certificate-store/bulk-upload
+activate CertificateStore
+
+CertificateStore -> CertificateStore: **Process and store certificates:**\n- Income certificates: 15,000\n- Land certificates: 12,000\n- Death certificates: 25,000\n- Birth certificates: 18,000\n- Education certificates: 12,000\n- Employment certificates: 8,000\n- Index by citizen ID\n- Verify digital signatures\n- Set expiration dates\n- Create search indexes
+
+CertificateStore --> CertificateService: **Storage confirmation**\n{totalCertificates: 90,000, status: "SUCCESS", indexingComplete: true}
+deactivate CertificateStore
+
+== Phase 7: Update Certificate Metadata ==
+
+CertificateService -> CatalogueService: **Update certificate generation metadata**\nPOST /catalog/certificates/generation-status
+activate CatalogueService
+
+CatalogueService -> CatalogueService: **Update catalog with generation info:**\n- Last generation timestamp\n- Number of certificates generated\n- Success/failure status\n- Next scheduled generation
+
+CatalogueService --> CertificateService: **Metadata updated**\n{updateStatus: "SUCCESS", nextGeneration: "Tomorrow 2:00 AM"}
+deactivate CatalogueService
+
+CertificateService -> CertificateService: **Log generation summary:**\n- Total certificates generated: 90,000\n- Departments processed: 5\n- Certificate types: 6\n- Generation time: 45 minutes\n- Success rate: 100%
+
+deactivate CertificateService
+
+== Phase 8: Certificate Availability ==
+
+note over CertificateService, CivilDept
+**Generation Process Complete:**
+- 90,000+ certificates generated from catalog definitions
+- All certificates stored in Certificate Store with digital signatures
+- Certificates immediately available for consuming departments
+- Next generation scheduled for tomorrow 2:00 AM
+- Complete audit trail maintained for compliance
+end note
+
+@enduml

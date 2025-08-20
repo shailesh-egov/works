@@ -1,0 +1,85 @@
+@startuml
+title SDIP Department Registration
+
+skinparam participant {
+    BackgroundColor<<department>> lightblue
+    BorderColor<<department>> blue
+    FontColor<<department>> darkblue
+    FontStyle<<department>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<sdip>> lightyellow
+    BorderColor<<sdip>> orange
+    FontColor<<sdip>> darkorange
+    FontStyle<<sdip>> italic
+}
+
+skinparam actor {
+    BackgroundColor<<department>> lightblue
+    BorderColor<<department>> blue
+}
+
+skinparam actor {
+    BackgroundColor<<sdip>> lightyellow
+    BorderColor<<sdip>> orange
+}
+
+skinparam note {
+    BackgroundColor wheat
+    BorderColor brown
+}
+
+actor Dept1Admin as "Department\nAdmin" <<department>>
+participant ld1Dept as "Department\nServices" <<department>>
+
+|||
+
+participant Keycloak as "Keycloak" <<sdip>>
+participant ParticipantRegistry as "Participant\nRegistry" <<sdip>>
+participant CertificateService as "Certificate\nService" <<sdip>>
+participant AuditService as "Audit\nService" <<sdip>>
+participant otherServices as "..." <<sdip>>
+actor SDIPAdmin as "SDIP\nAdmin" <<sdip>>
+
+'note over DeptAdmin, DeptServices
+'**Line Department**
+'Local infrastructure
+'end note
+
+'note over Keycloak, SDIPAdmin
+'**SDIP Central Server**
+'Shared infrastructure
+'end note
+
+== Registration ==
+Dept1Admin -> ParticipantRegistry: Submit department registration
+ParticipantRegistry -> AuditService: Log registration
+ParticipantRegistry -> Keycloak: Create user account
+ParticipantRegistry --> Dept1Admin: Return department ID & credentials
+
+== Installation ==
+Dept1Admin -> ld1Dept: Install & configure services
+ld1Dept -> ld1Dept: Generate keypair
+ld1Dept --> Dept1Admin: Installation complete
+
+== Verification ==
+ld1Dept -> Keycloak: Get auth token
+ld1Dept -> ParticipantRegistry: Submit verification with public key
+ParticipantRegistry -> AuditService: Log verification
+ParticipantRegistry --> ld1Dept: Verification successful
+
+== Key Management ==
+Dept1Admin -> Keycloak: Submit generated keypair
+Keycloak --> Dept1Admin: Keypair stored successfully
+
+== Final Approval ==
+Dept1Admin -> ParticipantRegistry: Submit for approval
+SDIPAdmin -> ParticipantRegistry: Review & approve department
+ParticipantRegistry -> Keycloak: Retrieve keypair for review
+ParticipantRegistry -> AuditService: Log approval decision
+ParticipantRegistry --> SDIPAdmin: Approval confirmed
+
+note over ld1Dept, SDIPAdmin: **Registration process complete**\nApproved departments can now\ncreate API catalogs via CatalogueService
+
+@enduml

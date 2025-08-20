@@ -1,0 +1,53 @@
+@startuml
+title SDIP Catalog Management Flow - APIs and Certificates
+
+skinparam participant {
+    BackgroundColor<<dept1>> lightblue
+    BorderColor<<dept1>> blue
+    FontStyle<<dept1>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<dept2>> lightgreen  
+    BorderColor<<dept2>> green
+    FontStyle<<dept2>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<sdip>> lightyellow
+    BorderColor<<sdip>> orange
+    FontStyle<<sdip>> italic
+}
+
+actor Dept1 as "Dept 1\nAdmin" <<dept1>>
+actor Dept2 as "Dept 2\nAdmin" <<dept2>>
+participant Catalog as "Catalogue\nService" <<sdip>>
+
+== 1. Create Catalog ==
+Dept1 -> Catalog: Create API catalog
+Dept1 -> Catalog: Create certificate catalog
+note right: APIs and certificates published
+
+== 2. Discover Resources ==
+Dept2 -> Catalog: Search APIs and certificates
+Catalog --> Dept2: Available APIs and certificates
+
+== 3. Request Access ==
+Dept2 -> Catalog: Request API access only
+Catalog -> Dept1: API access request notification
+note right: Certificates immediately accessible
+
+== 4. Approve API Access ==
+alt Approve
+    Dept1 -> Catalog: Approve API access
+    Catalog -> Dept2: API access granted
+else Reject
+    Dept1 -> Catalog: Reject API access  
+    Catalog -> Dept2: API access denied
+end
+note right: Certificates always accessible
+
+== 5. Use Resources ==
+note over Dept2: APIs: If approved, can call Dept 1's APIs
+
+@enduml

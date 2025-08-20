@@ -1,0 +1,38 @@
+@startuml
+title Registry Flow
+
+actor User1 as "User" order 1
+actor User2 as "Admin" order 2
+participant iudx1 as "IUDX 1" order 3 #DFd9Df
+participant iudx2 as "IUDX 2" order 4 #DFd9Df
+participant Registry as "Common Registry" order 2 #DFd9Df
+
+User1 -> Registry: Created a Record
+activate User1
+activate Registry
+Registry --> User1: Record Created
+deactivate User1
+deactivate Registry
+
+User2 -> Registry: Approve Record
+activate User2
+activate Registry
+Registry -> User2: Validate Record & Approved
+deactivate Registry
+deactivate User2
+
+iudx1 -> Registry: Fetch Record
+activate iudx1
+activate Registry
+Registry --> iudx1: Record Fetched
+deactivate iudx1
+deactivate Registry
+
+iudx2 -> Registry: Fetch Record
+activate iudx2
+activate Registry
+Registry --> iudx2: Record Fetched
+deactivate iudx2
+deactivate Registry
+
+@enduml

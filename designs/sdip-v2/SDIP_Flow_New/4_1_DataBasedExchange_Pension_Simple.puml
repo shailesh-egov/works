@@ -1,0 +1,76 @@
+@startuml
+title Data-Based Exchange - Pension Verification
+
+skinparam participant {
+    BackgroundColor<<revenue>> lightblue
+    BorderColor<<revenue>> blue
+    FontStyle<<revenue>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<health>> lightcyan
+    BorderColor<<health>> darkblue
+    FontStyle<<health>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<pension>> lightgreen
+    BorderColor<<pension>> green
+    FontStyle<<pension>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<citizen>> lightyellow
+    BorderColor<<citizen>> orange
+    FontStyle<<citizen>> bold
+}
+
+skinparam participant {
+    BackgroundColor<<sdip>> wheat
+    BorderColor<<sdip>> brown
+    FontStyle<<sdip>> italic
+}
+
+actor Citizen as "Senior\nCitizen" <<citizen>>
+actor PensionDept as "Pension\nDepartment" <<pension>>
+participant RevenueDept as "Revenue\nDepartment" <<revenue>>
+participant HealthDept as "Health\nDepartment" <<health>>
+participant RequestService as "Request\nService" <<sdip>>
+participant FileStoreService as "File Store\nService" <<sdip>>
+
+== 1. Apply for Pension ==
+Citizen -> PensionDept: Apply for old age pension
+
+== 2. Submit Data Requests ==
+PensionDept -> RequestService: Request citizen data verification
+note over RequestService: **Creates multiple requests:**\n- Income data → Revenue Dept\n- Land holdings → Revenue Dept\n- Death records → Health Dept
+
+== 3. Departments Process Requests ==
+RequestService -> RevenueDept: Request income & land data
+RequestService -> HealthDept: Request death records
+
+RevenueDept -> FileStoreService: Store income data file (INC_001)
+RevenueDept -> FileStoreService: Store land data file (LAND_001)
+HealthDept -> FileStoreService: Store death status file (DEATH_001)
+
+RequestService -> PensionDept: All response files ready
+
+== 4. Retrieve & Process Files ==
+PensionDept -> FileStoreService: Download income file
+PensionDept -> FileStoreService: Download land file  
+PensionDept -> FileStoreService: Download death status file
+
+note over PensionDept: **Process all data files:**\n- Income: ₹8,000/month\n- Land: 0.5 acres\n- Death status: Alive
+
+== 5. Pension Decision ==
+alt All Data Shows Eligibility
+    PensionDept -> Citizen: **Pension Approved!**
+    note over Citizen: Data verified from files
+else Data Shows Ineligibility
+    PensionDept -> Citizen: **Pension Denied**
+    note over Citizen: Does not meet criteria
+end
+
+note over Citizen, FileStoreService: **File-based data exchange complete**\nAsynchronous processing with response files
+
+@enduml

@@ -1,0 +1,150 @@
+@startuml
+title SDIP Department Registration and Setup Process
+
+actor Dept1Admin as "Department\nAdmin" order 1
+participant ld1Dept as "Department\nServices" order 2 #E8F4FD
+participant Keycloak as "Identity\nProvider\n(Keycloak)" order 3 #FFE6CC
+participant ParticipantRegistry as "Participant\nRegistry" order 4 #E1F5FE
+participant CertificateService as "Certificate\nService" order 5 #F3E5F5
+participant AuditService as "Audit\nService" order 6 #E8F5E8
+participant otherServices as "..." order 7 #DFd9Df
+actor SDIPAdmin as "SDIP\nAdministrator" order 8
+
+!define ACTIVATED_COLOR #FFFFCC
+
+== Phase 1: Department Registration ==
+
+activate Dept1Admin
+Dept1Admin -> ParticipantRegistry: POST /department/create\n**Department Registration Request**\n{departmentName, adminDetails, contactInfo}
+activate ParticipantRegistry
+note right of ParticipantRegistry: Validate department details\nCheck for duplicates\nGenerate department ID
+ParticipantRegistry -> AuditService: Log registration attempt
+activate AuditService
+AuditService --> ParticipantRegistry: Logged
+deactivate AuditService
+
+ParticipantRegistry -> Keycloak: POST /admin/realms/sdip/users\n**Create user account**
+activate Keycloak
+Keycloak --> ParticipantRegistry: 201 Created\n{userId, temporaryPassword}
+deactivate Keycloak
+
+alt Registration successful
+    ParticipantRegistry --> Dept1Admin: 201 Created\n{departmentId, credentials, setupInstructions}
+    deactivate ParticipantRegistry
+    note over Dept1Admin: Department registered with\nstatus: "PENDING_SETUP"
+else Registration failed
+    ParticipantRegistry --> Dept1Admin: 400 Bad Request\n{error: "Invalid department data"}
+    deactivate ParticipantRegistry
+    note over Dept1Admin: Registration failed\nAdmin must correct data and retry
+end
+
+== Phase 2: Department Services Installation ==
+
+Dept1Admin -> ld1Dept: **Install SDIP services**\n- Download service packages\n- Configure department ID\n- Generate RSA keypair
+activate ld1Dept
+note over ld1Dept: Services installed locally\nKeypair generated\nConfiguration updated
+
+Dept1Admin -> ld1Dept: **Verify installation**\nRun health checks
+ld1Dept -> ld1Dept: Self-diagnosis\nValidate configurations
+
+alt Installation successful
+    ld1Dept --> Dept1Admin: Installation verified\n{status: "READY", endpoints: [...]}
+else Installation failed
+    ld1Dept --> Dept1Admin: Installation failed\n{errors: ["Database connection failed", "Config invalid"]}
+    note over Dept1Admin: Fix installation issues\nbefore proceeding
+end
+
+== Phase 3: Service Authentication & Verification ==
+
+ld1Dept -> Keycloak: POST /auth/realms/sdip/protocol/openid-connect/token\n**Request service token**
+activate Keycloak
+
+alt Authentication successful
+    Keycloak --> ld1Dept: 200 OK\n{access_token, expires_in}
+else Authentication failed
+    Keycloak --> ld1Dept: 401 Unauthorized\n{error: "Invalid credentials"}
+    note over ld1Dept: Service cannot proceed\nwithout valid token
+end
+deactivate Keycloak
+
+ld1Dept -> ParticipantRegistry: PUT /department/{id}/verify\n**Submit Installation Verification**\n{serviceEndpoints, healthStatus}
+activate ParticipantRegistry
+ParticipantRegistry -> ParticipantRegistry: Validate service endpoints\nVerify connectivity\nStore verification status
+
+ParticipantRegistry -> AuditService: Log verification success
+activate AuditService
+AuditService --> ParticipantRegistry: Logged
+deactivate AuditService
+
+alt Verification successful
+    ParticipantRegistry --> ld1Dept: 200 OK\n{verificationStatus: "VERIFIED"}
+    deactivate ParticipantRegistry
+    deactivate ld1Dept
+    note over Dept1Admin: Department status updated to\n"VERIFIED"
+else Verification failed
+    ParticipantRegistry --> ld1Dept: 422 Unprocessable Entity\n{error: "Service endpoints unreachable"}
+    deactivate ParticipantRegistry
+    deactivate ld1Dept
+    note over Dept1Admin: Verification failed\nCheck network connectivity\nand service configuration
+end
+
+== Phase 4: Key Management ==
+
+Dept1Admin -> Keycloak: POST /departments/{id}/keypair\n**Submit generated keypair**\n{publicKey, privateKey}
+activate Keycloak
+Keycloak -> Keycloak: Store keypair securely\nGenerate key ID
+Keycloak --> Dept1Admin: 200 OK\n{keyId, status: "STORED"}
+deactivate Keycloak
+note over Dept1Admin: Keypair securely stored\nin Keycloak for department
+
+== Phase 5: Final Approval ==
+
+Dept1Admin -> ParticipantRegistry: PUT /department/{id}/submit\n**Submit for approval**\n{finalChecklist}\nnote right: Keypair stored in Keycloak
+activate ParticipantRegistry
+ParticipantRegistry --> Dept1Admin: 200 OK\n{status: "PENDING_APPROVAL"}
+deactivate ParticipantRegistry
+deactivate Dept1Admin
+note over Dept1Admin: Department ready for\nSDIP Admin approval
+
+== Phase 6: SDIP Administrator Approval ==
+
+activate SDIPAdmin
+SDIPAdmin -> ParticipantRegistry: GET /department/{id}\n**Review department details**
+activate ParticipantRegistry
+ParticipantRegistry -> Keycloak: GET /departments/{id}/keypair\n**Retrieve stored keypair**
+activate Keycloak
+Keycloak --> ParticipantRegistry: 200 OK\n{publicKey, keyId}
+deactivate Keycloak
+ParticipantRegistry --> SDIPAdmin: 200 OK\n{departmentDetails, verificationStatus, publicKey}
+
+SDIPAdmin -> SDIPAdmin: **Manual verification:**\n- Review department credentials\n- Validate service endpoints\n- Check compliance requirements
+
+alt Admin approves registration
+    SDIPAdmin -> ParticipantRegistry: PUT /department/{id}/approve\n**Approve Department Registration**\n{approvalComments, effectiveDate}
+    ParticipantRegistry -> ParticipantRegistry: Update status to "ACTIVE"\nEnable API access\nActivate monitoring
+    
+    ParticipantRegistry -> AuditService: Log approval decision
+    activate AuditService
+    AuditService --> ParticipantRegistry: Logged
+    deactivate AuditService
+    
+    ParticipantRegistry --> SDIPAdmin: 200 OK\n{approvalStatus: "APPROVED"}
+    note over SDIPAdmin: Department is now active\nand can participate in SDIP
+else Admin rejects registration
+    SDIPAdmin -> ParticipantRegistry: PUT /department/{id}/reject\n**Reject Department Registration**\n{rejectionReason, requiredActions}
+    ParticipantRegistry -> ParticipantRegistry: Update status to "REJECTED"\nNotify department admin
+    
+    ParticipantRegistry -> AuditService: Log rejection decision
+    activate AuditService
+    AuditService --> ParticipantRegistry: Logged
+    deactivate AuditService
+    
+    ParticipantRegistry --> SDIPAdmin: 200 OK\n{approvalStatus: "REJECTED"}
+    note over SDIPAdmin: Department must address\nissues before reapplying
+end
+deactivate ParticipantRegistry
+deactivate SDIPAdmin
+
+note over ld1Dept, SDIPAdmin: **Registration process complete**\nApproved departments can now\ncreate API catalogs via CatalogueService
+
+@enduml
